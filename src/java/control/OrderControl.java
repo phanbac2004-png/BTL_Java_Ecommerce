@@ -5,6 +5,7 @@ import entity.Account;
 import entity.Order;
 import entity.OrderDetail;
 import entity.Product;
+import entity.ProductVariant;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -62,13 +63,34 @@ public class OrderControl extends HttpServlet {
                 
                 if (order != null) {
                     List<OrderDetail> listOD = dao.getOrderDetailsByOrderID(orderID);
-                    
-                    // Lấy thông tin sản phẩm cho mỗi chi tiết
+
+                    // Lấy thông tin sản phẩm cho mỗi chi tiết và (nếu có) variant info.
                     List<Product> listProducts = new ArrayList<>();
+                    List<ProductVariant> listVariants = new ArrayList<>();
                     for (OrderDetail od : listOD) {
                         Product p = dao.getProductByID(od.getProductID());
-                        if (p != null) {
+                        ProductVariant pv = null;
+                        if (p == null) {
+                            // Maybe this order detail row stores a variant_id in productID
+                            pv = dao.getVariantById(od.getProductID());
+                            if (pv != null) {
+                                // populate color/size names if possible
+                                String cName = dao.getColorNameById(pv.getColorId());
+                                String sName = dao.getSizeNameById(pv.getSizeId());
+                                try { pv.setColorName(cName); } catch (Exception ignore) {}
+                                try { pv.setSizeName(sName); } catch (Exception ignore) {}
+                                p = dao.getProductByID(pv.getProductId());
+                            }
+                        }
+                        if (p == null) {
+                            // fallback placeholder product
+                            String placeholderImage = request.getContextPath() + "/images/placeholder-80.svg";
+                            p = new Product(0, "Unknown product", placeholderImage, 0, "", "");
                             listProducts.add(p);
+                            listVariants.add(pv);
+                        } else {
+                            listProducts.add(p);
+                            listVariants.add(pv);
                         }
                     }
                     
@@ -88,6 +110,7 @@ public class OrderControl extends HttpServlet {
                     request.setAttribute("order", order);
                     request.setAttribute("listOD", listOD);
                     request.setAttribute("listProducts", listProducts);
+                    request.setAttribute("listVariants", listVariants);
                     
                     // Set message
                     request.setAttribute("successMessage", "Đặt hàng thành công!");

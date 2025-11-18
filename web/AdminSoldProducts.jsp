@@ -488,7 +488,7 @@
                                             <td class="align-middle">${loop.index + 1}</td>
                                             <td class="align-middle">
                                                 <img src="${item.product.image}" alt="${item.product.name}" 
-                                                     class="product-image" onerror="this.src='https://via.placeholder.com/80'">
+                                                     class="product-image" onerror="this.onerror=null;this.src='${pageContext.request.contextPath}/images/placeholder-80.svg';">
                                             </td>
                                             <td class="align-middle">
                                                 <strong>${item.product.name}</strong>

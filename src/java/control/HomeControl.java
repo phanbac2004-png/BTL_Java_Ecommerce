@@ -36,10 +36,11 @@ public class HomeControl extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        // b1: get data from dao with pagination
+        // b1: get data from dao with pagination and filters
         DAO dao = new DAO();
         int page = 1;
         int pageSize = 5;
+
         try {
             String pageParam = request.getParameter("page");
             if (pageParam != null) {
@@ -49,31 +50,56 @@ public class HomeControl extends HttpServlet {
             page = 1;
         }
 
-        String color = request.getParameter("color");
-        String size = request.getParameter("size");
-        Double min = null, max = null;
-        try { String s = request.getParameter("min"); if (s != null && !s.isEmpty()) min = Double.parseDouble(s); } catch (Exception ignore) {}
-        try { String s = request.getParameter("max"); if (s != null && !s.isEmpty()) { double v = Double.parseDouble(s); max = (v <= 0) ? null : v; } } catch (Exception ignore) {}
+        // Read filter params
+        String colorParam = request.getParameter("color");
+        String sizeParam = request.getParameter("size");
+        String minParam = request.getParameter("min");
+        String maxParam = request.getParameter("max");
+        String cidParam = request.getParameter("cid");
+        String txtParam = request.getParameter("txt");
 
-        int totalProducts = dao.getTotalProductsCountFiltered(null, null, color, size, min, max);
+        Integer colorId = null;
+        Integer sizeId = null;
+        Integer cid = null;
+        double minPrice = 0;
+        double maxPrice = 1000000;
+        try { if (colorParam != null && !colorParam.isEmpty()) colorId = Integer.parseInt(colorParam); } catch (Exception ignore) {}
+        try { if (sizeParam != null && !sizeParam.isEmpty()) sizeId = Integer.parseInt(sizeParam); } catch (Exception ignore) {}
+        try { if (cidParam != null && !cidParam.isEmpty()) cid = Integer.parseInt(cidParam); } catch (Exception ignore) {}
+        try { if (minParam != null && !minParam.isEmpty()) minPrice = Double.parseDouble(minParam); } catch (Exception ignore) {}
+        try { if (maxParam != null && !maxParam.isEmpty()) maxPrice = Double.parseDouble(maxParam); } catch (Exception ignore) {}
+
+        int totalProducts = dao.getTotalProductsCountFiltered(colorId, sizeId, minPrice, maxPrice, cid, txtParam);
         int totalPage = (int) Math.ceil((double) totalProducts / pageSize);
         if (totalPage <= 0) totalPage = 1;
         if (page < 1) page = 1;
         if (page > totalPage) page = totalPage;
 
         int offset = (page - 1) * pageSize;
-    String sort = request.getParameter("sort");
-    List<Product> list = dao.getProductsFiltered(null, null, color, size, min, max, offset, pageSize, sort);
+        String sort = request.getParameter("sort");
+        List<Product> list = dao.getProductsByFilter(offset, pageSize, sort, colorId, sizeId, minPrice, maxPrice, cid, txtParam);
         List<Category> listC = dao.getAllCategory();
+        // Fetch colors and sizes for Left.jsp filter
+        List<entity.Color> colors = dao.getAllColors();
+        List<entity.Size> sizes = dao.getAllSizes();
         Product last = dao.getLast();
 
         // b2: set data to jsp
-    request.setAttribute("listP", list);
+        request.setAttribute("listP", list);
         request.setAttribute("listCC", listC);
+        request.setAttribute("colorsList", colors);
+        request.setAttribute("sizesList", sizes);
         request.setAttribute("p", last);
         request.setAttribute("page", page);
         request.setAttribute("totalPage", totalPage);
-    request.setAttribute("sort", sort);
+        request.setAttribute("sort", sort);
+        // Preserve filter values so JSPs can read them if needed
+        request.setAttribute("filterColor", colorId);
+        request.setAttribute("filterSize", sizeId);
+        request.setAttribute("filterMin", minPrice);
+        request.setAttribute("filterMax", maxPrice);
+        request.setAttribute("filterCid", cid);
+        request.setAttribute("filterTxt", txtParam);
         request.setAttribute("url", "home");
         request.getRequestDispatcher("Home.jsp").forward(request, response);
         //404 -> url

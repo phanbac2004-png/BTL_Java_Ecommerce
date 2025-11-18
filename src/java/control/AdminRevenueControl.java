@@ -69,25 +69,27 @@ public class AdminRevenueControl extends HttpServlet {
         double revenueThisWeek;
         double revenueThisMonth;
         double revenueThisYear;
+        double customRevenue = 0;
         
         // Kiểm tra xem có ngày được chọn từ form không
-        boolean hasSelectedDate = (day != null && !day.isEmpty() && 
-                                  month != null && !month.isEmpty() && 
-                                  year != null && !year.isEmpty());
+        boolean hasSelectedDate = (dayParam != null && !dayParam.isEmpty() && 
+                                  monthParam != null && !monthParam.isEmpty() && 
+                                  yearParam != null && !yearParam.isEmpty());
         
         if (hasSelectedDate) {
-            // Nếu có ngày được chọn, TẤT CẢ các card đều hiển thị doanh thu của ngày đó
+            // Nếu có ngày được chọn từ form, tính doanh thu theo ngày đó
             try {
                 int y = Integer.parseInt(year);
                 int m = Integer.parseInt(month);
                 int d = Integer.parseInt(day);
                 
-                // Tất cả đều = doanh thu của ngày được chọn
-                double selectedDayRevenue = dao.getRevenueBySelectedDate(y, m, d);
-                revenueToday = selectedDayRevenue;
-                revenueThisWeek = selectedDayRevenue;
-                revenueThisMonth = selectedDayRevenue;
-                revenueThisYear = selectedDayRevenue;
+                // Tính doanh thu theo ngày/tháng/năm được chọn
+                revenueToday = dao.getRevenueBySelectedDate(y, m, d);
+                revenueThisWeek = dao.getRevenueBySelectedWeek(y, m, d);
+                revenueThisMonth = dao.getRevenueBySelectedMonth(y, m, d);
+                revenueThisYear = dao.getRevenueBySelectedYear(y, m, d);
+                customRevenue = revenueToday; // Doanh thu custom là doanh thu của ngày được chọn
+                
             } catch (NumberFormatException e) {
                 // Nếu parse lỗi, dùng ngày hiện tại
                 revenueToday = dao.getRevenueToday();
@@ -105,7 +107,6 @@ public class AdminRevenueControl extends HttpServlet {
         
         // Lấy danh sách đơn hàng theo period hoặc ngày/tháng/năm cụ thể
         List<Order> listOrders;
-        double customRevenue = 0;
         
         if (hasSelectedDate) {
             // Có ngày/tháng/năm cụ thể
@@ -114,7 +115,6 @@ public class AdminRevenueControl extends HttpServlet {
                 int m = Integer.parseInt(month);
                 int d = Integer.parseInt(day);
                 listOrders = dao.getOrdersByDate(y, m, d);
-                customRevenue = dao.getRevenueByDay(y, m, d);
             } catch (NumberFormatException e) {
                 listOrders = dao.getAllOrders();
             }
@@ -151,4 +151,3 @@ public class AdminRevenueControl extends HttpServlet {
         processRequest(request, response);
     }
 }
-

@@ -1,6 +1,5 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html>
@@ -25,7 +24,6 @@
             }
 
             /* --- Navbar (từ Menu.jsp) --- */
-            
             .navbar-kid {
                 background-color: #FCE4EC !important; 
                 font-family: 'Nunito', sans-serif;
@@ -251,22 +249,6 @@
                 pointer-events: none;
             }
 
-            /* Swatch styles for color filter */
-            .swatch-circle {
-                display: inline-block;
-                width: 14px;
-                height: 14px;
-                border-radius: 50%;
-                margin-right: 8px;
-                vertical-align: middle;
-                border: 1px solid #eee;
-            }
-            .swatch-red { background-color: red; }
-            .swatch-pink { background-color: pink; }
-            .swatch-blue { background-color: blue; }
-            .swatch-white { background-color: white; }
-            .swatch-black { background-color: black; }
-
         </style>
         </head>
     <body>
@@ -284,136 +266,18 @@
                 </div>
             </div> 
         </div>
-        
+
         <div class="container">
             <div class="row">
+                <!-- Left Sidebar -->
                 <div class="col-sm-3">
-                    <div class="card sidebar-card mb-3">
-                        <div class="card-header header-pink text-white text-uppercase"><i class="fa fa-list"></i> Categories</div>
-                        <ul class="list-group category_block">
-                            <c:forEach items="${listCC}" var="o">
-                                <li class="list-group-item ${tag == o.cid ? "active" : ""}"><a href="category?cid=${o.cid}">${o.cname}</a></li>
-                            </c:forEach>
-                        </ul>
-                    </div>
-                    
-                    <!-- Color Filter -->
-                    <div class="card sidebar-card mb-3">
-                        <div class="card-header header-pink-light text-uppercase">Màu sắc</div>
-                        <ul class="list-group category_block">
-                            <c:url var="allColorUrl" value="${url}">
-                                <c:param name="page" value="1" />
-                                <c:if test="${not empty tag}"><c:param name="cid" value="${tag}" /></c:if>
-                                <c:if test="${not empty txtS}"><c:param name="txt" value="${txtS}" /></c:if>
-                                <c:if test="${not empty sort}"><c:param name="sort" value="${sort}" /></c:if>
-                            </c:url>
-                            <li class="list-group-item ${empty param.color ? 'active' : ''}">
-                                <a href="${allColorUrl}">Tất cả</a>
-                            </li>
-                            <c:set var="colors">red,pink,blue,white,black</c:set>
-                            <c:forTokens var="cName" items="${colors}" delims=",">
-                                <c:url var="colorUrl" value="${url}">
-                                    <c:param name="color" value="${cName}" />
-                                    <c:param name="page" value="1" />
-                                    <c:if test="${not empty tag}"><c:param name="cid" value="${tag}" /></c:if>
-                                    <c:if test="${not empty txtS}"><c:param name="txt" value="${txtS}" /></c:if>
-                                    <c:if test="${not empty sort}"><c:param name="sort" value="${sort}" /></c:if>
-                                    <c:if test="${not empty param.size}"><c:param name="size" value="${param.size}" /></c:if>
-                                <!-- Reset price filter when changing color -->
-                                </c:url>
-                                <li class="list-group-item ${param.color == cName ? 'active' : ''}">
-                                    <a href="${colorUrl}">
-                                        <span class="swatch-circle swatch-${cName}"></span>
-                                        <span style="text-transform:capitalize">${cName}</span>
-                                    </a>
-                                </li>
-                            </c:forTokens>
-                        </ul>
-                    </div>
-
-                    <!-- Size Filter -->
-                    <div class="card sidebar-card mb-3">
-                        <div class="card-header header-pink-light text-uppercase">Kích cỡ</div>
-                        <div class="card-body">
-                            <div class="btn-group btn-group-sm d-flex flex-wrap" role="group" aria-label="Size filter" style="gap:6px;">
-                                <c:set var="sizes">S,M,L,XL</c:set>
-                                <c:url var="allSizeUrl" value="${url}">
-                                    <c:param name="page" value="1" />
-                                    <c:if test="${not empty tag}"><c:param name="cid" value="${tag}" /></c:if>
-                                    <c:if test="${not empty txtS}"><c:param name="txt" value="${txtS}" /></c:if>
-                                    <c:if test="${not empty sort}"><c:param name="sort" value="${sort}" /></c:if>
-                                    <c:if test="${not empty param.color}"><c:param name="color" value="${param.color}" /></c:if>
-                                    <!-- Reset price filter when changing size -->
-                                </c:url>
-                                <a href="${allSizeUrl}" class="btn ${empty param.size ? 'btn-primary' : 'btn-outline-primary'}">All</a>
-                                <c:forTokens var="sName" items="${sizes}" delims=",">
-                                    <c:url var="sizeUrl" value="${url}">
-                                        <c:param name="size" value="${sName}" />
-                                        <c:param name="page" value="1" />
-                                        <c:if test="${not empty tag}"><c:param name="cid" value="${tag}" /></c:if>
-                                        <c:if test="${not empty txtS}"><c:param name="txt" value="${txtS}" /></c:if>
-                                        <c:if test="${not empty sort}"><c:param name="sort" value="${sort}" /></c:if>
-                                        <c:if test="${not empty param.color}"><c:param name="color" value="${param.color}" /></c:if>
-                                        <!-- Reset price filter when changing size -->
-                                    </c:url>
-                                    <a href="${sizeUrl}" class="btn ${param.size == sName ? 'btn-primary' : 'btn-outline-primary'}">${sName}</a>
-                                </c:forTokens>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Price Filter -->
-                    <div class="card sidebar-card mb-3">
-                        <div class="card-header header-pink-light text-uppercase">Giá</div>
-                        <div class="card-body">
-                            <c:set var="minDefault" value="0" />
-                            <c:set var="maxDefault" value="1000000" />
-                            <c:set var="minInit" value="${empty param.min ? minDefault : param.min}" />
-                            <c:set var="maxInit" value="${empty param.max ? maxDefault : param.max}" />
-                            <form method="get" action="${url}" id="priceFilterForm">
-                                <input type="hidden" name="page" value="1"/>
-                                <c:if test="${not empty tag}"><input type="hidden" name="cid" value="${tag}"/></c:if>
-                                <c:if test="${not empty txtS}"><input type="hidden" name="txt" value="${txtS}"/></c:if>
-                                <c:if test="${not empty sort}"><input type="hidden" name="sort" value="${sort}"/></c:if>
-                                <c:if test="${not empty param.color}"><input type="hidden" name="color" value="${param.color}"/></c:if>
-                                <c:if test="${not empty param.size}"><input type="hidden" name="size" value="${param.size}"/></c:if>
-
-                                <input type="hidden" id="priceMinInput" name="min" value="${minInit}"/>
-                                <input type="hidden" id="priceMaxInput" name="max" value="${maxInit}"/>
-
-                                <div class="d-flex justify-content-between mb-2">
-                                    <div class="small text-muted">Tối thiểu</div>
-                                    <div class="small text-muted">Tối đa</div>
-                                </div>
-                                <div class="d-flex justify-content-between mb-2">
-                                    <div id="priceMinLabel" style="font-weight:700;color:#C2185B;">
-                                        <fmt:formatNumber value="${minInit}" type="number" pattern="#,###"/> đ
-                                    </div>
-                                    <div id="priceMaxLabel" style="font-weight:700;color:#C2185B;">
-                                        <fmt:formatNumber value="${maxInit}" type="number" pattern="#,###"/> đ
-                                    </div>
-                                </div>
-                                <div class="position-relative" style="height:36px;">
-                                    <input id="priceMinRange" type="range" min="${minDefault}" max="${maxDefault}" step="10000" value="${minInit}" style="position:absolute;left:0;right:0;top:8px;width:100%;pointer-events:auto;">
-                                    <input id="priceMaxRange" type="range" min="${minDefault}" max="${maxDefault}" step="10000" value="${maxInit}" style="position:absolute;left:0;right:0;top:8px;width:100%;pointer-events:auto;">
-                                </div>
-                                <button type="submit" class="btn btn-sm btn-kid-cart btn-block mt-3">Lọc giá</button>
-                            </form>
-                        </div>
-                    </div>
-                    
-                    <div class="card sidebar-card mb-3">
-                        <div class="card-header header-pink-light text-uppercase">Last product</div>
-                        <div class="card-body">
-                            <img class="img-fluid" src="${p.image}" />
-                            <h5 class="card-title">${p.name}</h5>
-                            <p class="card-text">${p.title}</p>
-                            <p class="bloc_left_price"><fmt:formatNumber value="${p.price}" type="number" pattern="#,###"/> đ</p>
-                        </div>
-                    </div>
+                    <jsp:include page="Left.jsp"></jsp:include>
                 </div>
 
+                <!-- Main Content -->
                 <div class="col-sm-9">
+                    <!-- Product area (AJAX-updatable) -->
+                    <div id="productArea">
                     <!-- Filter bar -->
                     <div class="d-flex align-items-center mb-3" style="gap:10px;">
                         <div class="small text-muted">Sắp xếp theo</div>
@@ -423,10 +287,10 @@
                             <c:param name="page" value="1" />
                             <c:if test="${not empty tag}"><c:param name="cid" value="${tag}" /></c:if>
                             <c:if test="${not empty txtS}"><c:param name="txt" value="${txtS}" /></c:if>
-                            <c:if test="${not empty param.color}"><c:param name="color" value="${param.color}" /></c:if>
-                            <c:if test="${not empty param.size}"><c:param name="size" value="${param.size}" /></c:if>
-                            <c:if test="${not empty param.min}"><c:param name="min" value="${param.min}" /></c:if>
-                            <c:if test="${not empty param.max}"><c:param name="max" value="${param.max}" /></c:if>
+                            <c:if test="${not empty param.color}"><c:param name="color" value="${param.color}"/></c:if>
+                            <c:if test="${not empty param.size}"><c:param name="size" value="${param.size}"/></c:if>
+                            <c:if test="${not empty param.min}"><c:param name="min" value="${param.min}"/></c:if>
+                            <c:if test="${not empty param.max}"><c:param name="max" value="${param.max}"/></c:if>
                         </c:url>
                         <a href="${popularUrl}" class="btn" style="background:#EC407A;color:white;font-weight:700;">Phổ Biến</a>
 
@@ -435,10 +299,10 @@
                             <c:param name="page" value="1" />
                             <c:if test="${not empty tag}"><c:param name="cid" value="${tag}" /></c:if>
                             <c:if test="${not empty txtS}"><c:param name="txt" value="${txtS}" /></c:if>
-                            <c:if test="${not empty param.color}"><c:param name="color" value="${param.color}" /></c:if>
-                            <c:if test="${not empty param.size}"><c:param name="size" value="${param.size}" /></c:if>
-                            <c:if test="${not empty param.min}"><c:param name="min" value="${param.min}" /></c:if>
-                            <c:if test="${not empty param.max}"><c:param name="max" value="${param.max}" /></c:if>
+                            <c:if test="${not empty param.color}"><c:param name="color" value="${param.color}"/></c:if>
+                            <c:if test="${not empty param.size}"><c:param name="size" value="${param.size}"/></c:if>
+                            <c:if test="${not empty param.min}"><c:param name="min" value="${param.min}"/></c:if>
+                            <c:if test="${not empty param.max}"><c:param name="max" value="${param.max}"/></c:if>
                         </c:url>
                         <a href="${priceAscUrl}" class="btn" style="background:#fff;border:1px solid #FCE4EC;color:#C2185B;font-weight:700;">Giá ↑</a>
 
@@ -447,10 +311,10 @@
                             <c:param name="page" value="1" />
                             <c:if test="${not empty tag}"><c:param name="cid" value="${tag}" /></c:if>
                             <c:if test="${not empty txtS}"><c:param name="txt" value="${txtS}" /></c:if>
-                            <c:if test="${not empty param.color}"><c:param name="color" value="${param.color}" /></c:if>
-                            <c:if test="${not empty param.size}"><c:param name="size" value="${param.size}" /></c:if>
-                            <c:if test="${not empty param.min}"><c:param name="min" value="${param.min}" /></c:if>
-                            <c:if test="${not empty param.max}"><c:param name="max" value="${param.max}" /></c:if>
+                            <c:if test="${not empty param.color}"><c:param name="color" value="${param.color}"/></c:if>
+                            <c:if test="${not empty param.size}"><c:param name="size" value="${param.size}"/></c:if>
+                            <c:if test="${not empty param.min}"><c:param name="min" value="${param.min}"/></c:if>
+                            <c:if test="${not empty param.max}"><c:param name="max" value="${param.max}"/></c:if>
                         </c:url>
                         <a href="${priceDescUrl}" class="btn" style="background:#fff;border:1px solid #FCE4EC;color:#C2185B;font-weight:700;">Giá ↓</a>
                     </div>
@@ -470,14 +334,7 @@
                                                 <p class="btn btn-price btn-block"><fmt:formatNumber value="${o.price}" type="number" pattern="#,###"/> đ</p>
                                             </div>
                                             <div class="col">
-                                                <c:choose>
-                                                    <c:when test="${o.quantity == 0}">
-                                                        <button class="btn btn-secondary btn-block" disabled>Out of stock</button>
-                                                    </c:when>
-                                                    <c:otherwise>
-                                                        <button onclick="addToCart('${o.id}')" class="btn btn-kid-cart btn-block">Add to cart</button>
-                                                    </c:otherwise>
-                                                </c:choose>
+                                                <a href="detail?pid=${o.id}" class="btn btn-kid-cart btn-block">Add to cart</a>
                                             </div>
                                         </div>
                                     </div>
@@ -485,66 +342,67 @@
                             </div>
                         </c:forEach>
                     </div>
-                        <!-- Pagination placed at end of product list -->
-                        <div class="row mt-3">
-                            <div class="col-12">
-                                <nav aria-label="Page navigation">
-                                    <ul class="pagination justify-content-center kid-pagination">
-                                        <c:if test="${page > 1}">
-                                            <c:url var="prevUrl" value="${url}">
-                                                <c:param name="page" value="${page - 1}" />
-                                                <c:if test="${not empty tag}"><c:param name="cid" value="${tag}" /></c:if>
-                                                <c:if test="${not empty txtS}"><c:param name="txt" value="${txtS}" /></c:if>
-                                                <c:if test="${not empty sort}"><c:param name="sort" value="${sort}" /></c:if>
-                                                <c:if test="${not empty param.color}"><c:param name="color" value="${param.color}" /></c:if>
-                                                <c:if test="${not empty param.size}"><c:param name="size" value="${param.size}" /></c:if>
-                                                <c:if test="${not empty param.min}"><c:param name="min" value="${param.min}" /></c:if>
-                                                <c:if test="${not empty param.max}"><c:param name="max" value="${param.max}" /></c:if>
-                                            </c:url>
-                                            <li class="page-item">
-                                                <a class="page-link" href="${prevUrl}" aria-label="Previous">
-                                                    <i class="fas fa-chevron-left"></i>
-                                                </a>
-                                            </li>
-                                        </c:if>
+                    
+                    <!-- Pagination placed at end of product list -->
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination justify-content-center kid-pagination">
+                                    <c:if test="${page > 1}">
+                                        <c:url var="prevUrl" value="${url}">
+                                            <c:param name="page" value="${page - 1}" />
+                                            <c:if test="${not empty tag}"><c:param name="cid" value="${tag}" /></c:if>
+                                            <c:if test="${not empty txtS}"><c:param name="txt" value="${txtS}" /></c:if>
+                                            <c:if test="${not empty sort}"><c:param name="sort" value="${sort}" /></c:if>
+                                            <c:if test="${not empty param.color}"><c:param name="color" value="${param.color}"/></c:if>
+                                            <c:if test="${not empty param.size}"><c:param name="size" value="${param.size}"/></c:if>
+                                            <c:if test="${not empty param.min}"><c:param name="min" value="${param.min}"/></c:if>
+                                            <c:if test="${not empty param.max}"><c:param name="max" value="${param.max}"/></c:if>
+                                        </c:url>
+                                        <li class="page-item">
+                                            <a class="page-link" href="${prevUrl}" aria-label="Previous">
+                                                <i class="fas fa-chevron-left"></i>
+                                            </a>
+                                        </li>
+                                    </c:if>
 
-                                        <c:forEach var="i" begin="1" end="${totalPage}">
-                                            <c:url var="pageUrl" value="${url}">
-                                                <c:param name="page" value="${i}" />
-                                                <c:if test="${not empty tag}"><c:param name="cid" value="${tag}" /></c:if>
-                                                <c:if test="${not empty txtS}"><c:param name="txt" value="${txtS}" /></c:if>
-                                                <c:if test="${not empty sort}"><c:param name="sort" value="${sort}" /></c:if>
-                                                <c:if test="${not empty param.color}"><c:param name="color" value="${param.color}" /></c:if>
-                                                <c:if test="${not empty param.size}"><c:param name="size" value="${param.size}" /></c:if>
-                                                <c:if test="${not empty param.min}"><c:param name="min" value="${param.min}" /></c:if>
-                                                <c:if test="${not empty param.max}"><c:param name="max" value="${param.max}" /></c:if>
-                                            </c:url>
-                                            <li class="page-item ${i == page ? 'active' : ''}"><a class="page-link" href="${pageUrl}">${i}</a></li>
-                                        </c:forEach>
+                                    <c:forEach var="i" begin="1" end="${totalPage}">
+                                        <c:url var="pageUrl" value="${url}">
+                                            <c:param name="page" value="${i}" />
+                                            <c:if test="${not empty tag}"><c:param name="cid" value="${tag}" /></c:if>
+                                            <c:if test="${not empty txtS}"><c:param name="txt" value="${txtS}" /></c:if>
+                                            <c:if test="${not empty sort}"><c:param name="sort" value="${sort}" /></c:if>
+                                            <c:if test="${not empty param.color}"><c:param name="color" value="${param.color}"/></c:if>
+                                            <c:if test="${not empty param.size}"><c:param name="size" value="${param.size}"/></c:if>
+                                            <c:if test="${not empty param.min}"><c:param name="min" value="${param.min}"/></c:if>
+                                            <c:if test="${not empty param.max}"><c:param name="max" value="${param.max}"/></c:if>
+                                        </c:url>
+                                        <li class="page-item ${i == page ? 'active' : ''}"><a class="page-link" href="${pageUrl}">${i}</a></li>
+                                    </c:forEach>
 
-                                        <c:if test="${page < totalPage}">
-                                            <c:url var="nextUrl" value="${url}">
-                                                <c:param name="page" value="${page + 1}" />
-                                                <c:if test="${not empty tag}"><c:param name="cid" value="${tag}" /></c:if>
-                                                <c:if test="${not empty txtS}"><c:param name="txt" value="${txtS}" /></c:if>
-                                                <c:if test="${not empty sort}"><c:param name="sort" value="${sort}" /></c:if>
-                                                <c:if test="${not empty param.color}"><c:param name="color" value="${param.color}" /></c:if>
-                                                <c:if test="${not empty param.size}"><c:param name="size" value="${param.size}" /></c:if>
-                                                <c:if test="${not empty param.min}"><c:param name="min" value="${param.min}" /></c:if>
-                                                <c:if test="${not empty param.max}"><c:param name="max" value="${param.max}" /></c:if>
-                                            </c:url>
-                                            <li class="page-item">
-                                                <a class="page-link" href="${nextUrl}" aria-label="Next">
-                                                    <i class="fas fa-chevron-right"></i>
-                                                </a>
-                                            </li>
-                                        </c:if>
-                                    </ul>
-                                </nav>
-                            </div>
+                                    <c:if test="${page < totalPage}">
+                                        <c:url var="nextUrl" value="${url}">
+                                            <c:param name="page" value="${page + 1}" />
+                                            <c:if test="${not empty tag}"><c:param name="cid" value="${tag}" /></c:if>
+                                            <c:if test="${not empty txtS}"><c:param name="txt" value="${txtS}" /></c:if>
+                                            <c:if test="${not empty sort}"><c:param name="sort" value="${sort}" /></c:if>
+                                            <c:if test="${not empty param.color}"><c:param name="color" value="${param.color}"/></c:if>
+                                            <c:if test="${not empty param.size}"><c:param name="size" value="${param.size}"/></c:if>
+                                            <c:if test="${not empty param.min}"><c:param name="min" value="${param.min}"/></c:if>
+                                            <c:if test="${not empty param.max}"><c:param name="max" value="${param.max}"/></c:if>
+                                        </c:url>
+                                        <li class="page-item">
+                                            <a class="page-link" href="${nextUrl}" aria-label="Next">
+                                                <i class="fas fa-chevron-right"></i>
+                                            </a>
+                                        </li>
+                                    </c:if>
+                                </ul>
+                            </nav>
                         </div>
+                    </div>
+                    </div> <!-- /#productArea -->
                 </div>
-
             </div>
         </div>
 
@@ -564,40 +422,6 @@
         </div>
         
         <script>
-            // Dual range slider for Price filter (no external libs)
-            (function(){
-                var minDefault = 0;
-                var maxDefault = 1000000;
-                var step = 10000;
-                var minRange = document.getElementById('priceMinRange');
-                var maxRange = document.getElementById('priceMaxRange');
-                var minInput = document.getElementById('priceMinInput');
-                var maxInput = document.getElementById('priceMaxInput');
-                var minLabel = document.getElementById('priceMinLabel');
-                var maxLabel = document.getElementById('priceMaxLabel');
-                if (minRange && maxRange && minInput && maxInput && minLabel && maxLabel) {
-                    var format = function(n){ try { return Number(n).toLocaleString('vi-VN'); } catch(e){ return n; } };
-                    var clampStep = function(n){ return Math.round(n / step) * step; };
-                    var sync = function(fromMin){
-                        var minVal = parseInt(minRange.value, 10);
-                        var maxVal = parseInt(maxRange.value, 10);
-                        if (fromMin && minVal > maxVal) maxVal = minVal;
-                        if (!fromMin && maxVal < minVal) minVal = maxVal;
-                        minVal = clampStep(minVal);
-                        maxVal = clampStep(maxVal);
-                        minRange.value = String(minVal);
-                        maxRange.value = String(maxVal);
-                        minInput.value = String(minVal);
-                        maxInput.value = String(maxVal);
-                        minLabel.textContent = format(minVal) + ' đ';
-                        maxLabel.textContent = format(maxVal) + ' đ';
-                    };
-                    minRange.addEventListener('input', function(){ sync(true); });
-                    maxRange.addEventListener('input', function(){ sync(false); });
-                    // Initial sync to normalize values
-                    sync(true);
-                }
-            })();
             function addToCart(pid) {
                 console.log('Adding product to cart:', pid);
                 // default quantity = 1 for list pages
@@ -693,5 +517,98 @@
                 }
             });
         </script>
+        
+        <!-- Change Password Modal -->
+        <c:if test="${sessionScope.requirePasswordChange == true}">
+            <div class="modal fade show" id="changePasswordModal" tabindex="-1" role="dialog" style="display: block; background-color: rgba(0,0,0,0.5);" data-backdrop="static" data-keyboard="false">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content" style="border-radius: 15px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+                        <div class="modal-header" style="background: linear-gradient(135deg, #a366d1 0%, #9b59b6 100%); color: white; border-radius: 15px 15px 0 0;">
+                            <h5 class="modal-title" style="font-weight: 600;">
+                                <i class="fas fa-key me-2"></i>Đổi mật khẩu
+                            </h5>
+                        </div>
+                        <div class="modal-body" style="padding: 30px;">
+                            <c:if test="${not empty sessionScope.changePasswordMess}">
+                                <div class="alert alert-${sessionScope.changePasswordMessType != null ? sessionScope.changePasswordMessType : 'info'} alert-dismissible fade show" role="alert">
+                                    ${sessionScope.changePasswordMess}
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <c:remove var="changePasswordMess" scope="session"/>
+                                <c:remove var="changePasswordMessType" scope="session"/>
+                            </c:if>
+                            
+                            <p class="mb-4" style="color: #666;">
+                                <i class="fas fa-info-circle me-2" style="color: #9b59b6;"></i>
+                                Bạn đang sử dụng mật khẩu tạm. Vui lòng đổi mật khẩu thành mật khẩu mới theo yêu cầu của bạn.
+                            </p>
+                            
+                            <form action="changepassword" method="post" id="changePasswordForm">
+                                <div class="form-group">
+                                    <label for="currentPassword" style="font-weight: 600; color: #333;">
+                                        <i class="fas fa-lock me-2"></i>Mật khẩu hiện tại (mật khẩu tạm)
+                                    </label>
+                                    <input type="password" class="form-control" id="currentPassword" name="currentPassword" required 
+                                           style="border-radius: 10px; border: 2px solid #e0e0e0; padding: 10px 15px;">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="newPassword" style="font-weight: 600; color: #333;">
+                                        <i class="fas fa-key me-2"></i>Mật khẩu mới
+                                    </label>
+                                    <input type="password" class="form-control" id="newPassword" name="newPassword" required 
+                                           minlength="6" style="border-radius: 10px; border: 2px solid #e0e0e0; padding: 10px 15px;"
+                                           placeholder="Tối thiểu 6 ký tự">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="confirmPassword" style="font-weight: 600; color: #333;">
+                                        <i class="fas fa-check-circle me-2"></i>Xác nhận mật khẩu mới
+                                    </label>
+                                    <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required 
+                                           style="border-radius: 10px; border: 2px solid #e0e0e0; padding: 10px 15px;">
+                                </div>
+                                
+                                <div class="form-group mb-0">
+                                    <button type="submit" class="btn btn-block" 
+                                            style="background: linear-gradient(135deg, #a366d1 0%, #9b59b6 100%); 
+                                                   color: white; border: none; border-radius: 10px; padding: 12px; 
+                                                   font-weight: 600; font-size: 16px;">
+                                        <i class="fas fa-save me-2"></i>Đổi mật khẩu
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <script>
+                $(document).ready(function() {
+                    // Validate form before submit
+                    $('#changePasswordForm').on('submit', function(e) {
+                        var newPassword = $('#newPassword').val();
+                        var confirmPassword = $('#confirmPassword').val();
+                        
+                        if (newPassword !== confirmPassword) {
+                            e.preventDefault();
+                            alert('Mật khẩu mới và xác nhận mật khẩu không khớp!');
+                            return false;
+                        }
+                        
+                        if (newPassword.length < 6) {
+                            e.preventDefault();
+                            alert('Mật khẩu mới phải có ít nhất 6 ký tự!');
+                            return false;
+                        }
+                    });
+                    
+                    // Show modal
+                    $('#changePasswordModal').modal('show');
+                });
+            </script>
+        </c:if>
     </body>
 </html>

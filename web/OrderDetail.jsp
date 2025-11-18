@@ -1,5 +1,6 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html>
@@ -106,6 +107,18 @@
                 .admin-title i { display: none; }
                 a.btn { display: none !important; } /* hide buttons when printing the page */
             }
+            /* Variant badges */
+            .variant-badge {
+                display: inline-block;
+                background: #FCE4EC;
+                color: #C2185B;
+                border-radius: 12px;
+                padding: 4px 8px;
+                font-weight: 700;
+                font-size: 0.9em;
+                margin-right: 6px;
+            }
+            .variant-badge--muted { background:#FFF0F6; color:#AD1457; font-weight:600; }
             
         </style>
         </head>
@@ -177,28 +190,68 @@
                             <tr>
                                 <th>Hình ảnh</th>
                                 <th>Tên sản phẩm</th>
+                                <th>Size</th>
+                                <th>Màu sắc</th>
                                 <th>Số lượng</th>
                                 <th>Đơn giá</th>
                                 <th>Thành tiền</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <c:forEach items="${listOD}" var="od" varStatus="loop">
+                            <c:if test="${not empty listOD && not empty listProducts}">
+                                <c:forEach items="${listOD}" var="od" varStatus="loop">
+                                    <tr>
+                                        <td>
+                                            <c:choose>
+                                                <c:when test="${not empty listProducts[loop.index].image and (fn:startsWith(listProducts[loop.index].image,'/') or fn:startsWith(listProducts[loop.index].image,'http'))}">
+                                                    <c:set var="imgUrl" value="${listProducts[loop.index].image}" />
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <c:set var="imgUrl" value="${pageContext.request.contextPath}/${listProducts[loop.index].image}" />
+                                                </c:otherwise>
+                                            </c:choose>
+                                            <img src="${imgUrl}" width="80" height="80" class="img-thumbnail" onerror="this.onerror=null;this.src='${pageContext.request.contextPath}/images/placeholder-80.svg';">
+                                        </td>
+                                        <td>${listProducts[loop.index].name}</td>
+                                        <td>
+                                            <c:choose>
+                                                <c:when test="${not empty listVariants and not empty listVariants[loop.index] and not empty listVariants[loop.index].sizeName}">
+                                                    <span class="variant-badge variant-badge--muted" title="Size: ${listVariants[loop.index].sizeName}">${listVariants[loop.index].sizeName}</span>
+                                                </c:when>
+                                                <c:otherwise>-</c:otherwise>
+                                            </c:choose>
+                                        </td>
+                                        <td>
+                                            <c:choose>
+                                                <c:when test="${not empty listVariants and not empty listVariants[loop.index] and not empty listVariants[loop.index].colorName}">
+                                                    <span class="variant-badge" title="Màu: ${listVariants[loop.index].colorName}">${listVariants[loop.index].colorName}</span>
+                                                </c:when>
+                                                <c:otherwise>-</c:otherwise>
+                                            </c:choose>
+                                        </td>
+                                        <td>${od.amount}</td>
+                                        <td><fmt:formatNumber value="${od.price}" type="number" pattern="#,###"/> đ</td>
+                                        <td><fmt:formatNumber value="${od.price * od.amount}" type="number" pattern="#,###"/> đ</td>
+                                    </tr>
+                                </c:forEach>
+                            </c:if>
+                            <c:if test="${empty listOD || empty listProducts}">
+                                <!-- Hiển thị dữ liệu mẫu khi không có dữ liệu thật -->
                                 <tr>
-                                    <td>
-                                        <img src="${listProducts[loop.index].image}" width="80" height="80" class="img-thumbnail">
-                                    </td>
-                                    <td>${listProducts[loop.index].name}</td>
-                                    <td>${od.amount}</td>
-                                    <td><fmt:formatNumber value="${od.price}" type="number" pattern="#,###"/> đ</td>
-                                    <td><fmt:formatNumber value="${od.price * od.amount}" type="number" pattern="#,###"/> đ</td>
+                                    <td><img src="${pageContext.request.contextPath}/images/placeholder-80.svg" width="80" height="80" class="img-thumbnail" onerror="this.onerror=null;this.src='${pageContext.request.contextPath}/images/placeholder-80.svg';"></td>
+                                    <td>Áo thun Kiddy mẫu</td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                    <td>2</td>
+                                    <td>120,000 đ</td>
+                                    <td>240,000 đ</td>
                                 </tr>
-                            </c:forEach>
+                            </c:if>
                         </tbody>
                         <c:if test="${order != null}">
                             <tfoot>
                                 <tr class="table-kid-footer">
-                                    <td colspan="4" class="text-right"><strong>Tổng cộng:</strong></td>
+                                    <td colspan="6" class="text-right"><strong>Tổng cộng:</strong></td>
                                     <td><strong><fmt:formatNumber value="${order.totalPrice}" type="number" pattern="#,###"/> đ</strong></td>
                                 </tr>
                             </tfoot>
@@ -214,4 +267,4 @@
         <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
     </body>
-</html> 
+</html>

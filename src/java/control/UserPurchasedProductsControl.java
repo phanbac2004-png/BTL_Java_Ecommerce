@@ -5,6 +5,7 @@ import entity.Account;
 import entity.Order;
 import entity.OrderDetail;
 import entity.Product;
+import entity.ProductVariant;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,8 +48,21 @@ public class UserPurchasedProductsControl extends HttpServlet {
                 // Lấy thông tin sản phẩm cho mỗi order detail
                 for (OrderDetail od : orderDetails) {
                     Product product = dao.getProductByID(od.getProductID());
+                    ProductVariant pv = null;
+                    // Nếu không lấy được product bằng productID, có thể ô productID lưu variant_id
+                    if (product == null) {
+                        // Thử lấy variant theo id, sau đó lấy product từ variant
+                        pv = dao.getVariantById(od.getProductID());
+                        if (pv != null) {
+                            String cName = dao.getColorNameById(pv.getColorId());
+                            String sName = dao.getSizeNameById(pv.getSizeId());
+                            try { pv.setColorName(cName); } catch (Exception ignore) {}
+                            try { pv.setSizeName(sName); } catch (Exception ignore) {}
+                            product = dao.getProductByID(pv.getProductId());
+                        }
+                    }
                     if (product != null) {
-                        detailsWithProducts.add(new OrderDetailWithProduct(od, product));
+                        detailsWithProducts.add(new OrderDetailWithProduct(od, product, pv));
                     }
                 }
                 
@@ -80,14 +94,17 @@ public class UserPurchasedProductsControl extends HttpServlet {
     public static class OrderDetailWithProduct {
         private OrderDetail orderDetail;
         private Product product;
+        private ProductVariant variant; // may be null
         
-        public OrderDetailWithProduct(OrderDetail orderDetail, Product product) {
+        public OrderDetailWithProduct(OrderDetail orderDetail, Product product, ProductVariant variant) {
             this.orderDetail = orderDetail;
             this.product = product;
+            this.variant = variant;
         }
         
         public OrderDetail getOrderDetail() { return orderDetail; }
         public Product getProduct() { return product; }
+        public ProductVariant getVariant() { return variant; }
     }
 
     @Override

@@ -3,7 +3,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 
 <style>
-    /* Tiêu đề trang */
+    /* Tiêu đề trang */ /*QLSPadmin*/
     .page-title {
         color: #C2185B; /* Màu hồng đậm */
         font-family: 'Nunito', sans-serif;
@@ -51,7 +51,7 @@
         border-radius: 10px; /* Bo tròn */
     }
 
-    /* Nút chính (Thêm, Lưu) */
+    /* Nút chính (Thêm, Lưa) */
     .btn-kid-cart {
         background-color: #EC407A;
         color: white !important;
@@ -185,6 +185,8 @@
                     <th>ID</th>
                     <th>Tên sản phẩm</th>
                     <th>Hình ảnh</th>
+                    <th>Size</th>
+                    <th>Màu sắc</th>
                     <th>Giá</th>
                     <th>Thao tác</th>
                 </tr>
@@ -195,8 +197,10 @@
                         <td><strong>${o.id}</strong></td>
                         <td>${o.name}</td>
                         <td>
-                            <img src="${o.image}" alt="${o.name}" class="product-image" onerror="this.src='https://via.placeholder.com/80'">
+                            <img src="${o.image}" alt="${o.name}" class="product-image" onerror="this.onerror=null;this.src='${pageContext.request.contextPath}/images/placeholder-80.svg';">
                         </td>
+                        <td>-</td>
+                        <td>-</td>
                         <td><strong><fmt:formatNumber value="${o.price}" type="number" pattern="#,###"/> đ</strong></td>
                         <td>
                             <a href="loadProduct?pid=${o.id}" class="btn btn-kid-outline btn-sm" title="Edit">
@@ -235,6 +239,14 @@
                     <div class="form-group">
                         <label>URL hình ảnh *</label>
                         <input name="image" type="text" class="form-control" placeholder="https://example.com/image.jpg" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Size</label>
+                        <input name="size" type="text" class="form-control" placeholder="S, M, L, XL">
+                    </div>
+                    <div class="form-group">
+                        <label>Màu sắc</label>
+                        <input name="color" type="text" class="form-control" placeholder="Hồng, Xanh, Trắng...">
                     </div>
                     <div class="form-group">
                         <label>Giá *</label>

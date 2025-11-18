@@ -168,19 +168,48 @@
                                                         <div class="p-2">
                                                             <img src="${o.product.image}" alt="" width="70" class="img-fluid rounded shadow-sm">
                                                             <div class="ml-3 d-inline-block align-middle">
-                                                                <h5 class="mb-0"> <a href="detail?pid=${o.product.id}" class="product-link d-inline-block">${o.product.name}</a></h5><span class="text-muted font-weight-normal font-italic"></span>
+                                                                <h5 class="mb-0"> <a href="detail?pid=${o.product.id}" class="product-link d-inline-block">${o.product.name}</a></h5>
+                                                                <div class="text-muted small">
+                                                                    <c:choose>
+                                                                        <c:when test="${not empty o.variant}">
+                                                                            Màu: <strong>${o.variant.colorName}</strong> &nbsp; • &nbsp; Size: <strong>${o.variant.sizeName}</strong>
+                                                                        </c:when>
+                                                                        <c:otherwise>
+                                                                            &nbsp;
+                                                                        </c:otherwise>
+                                                                    </c:choose>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </th>
                                                     <td class="align-middle product-price"><strong><fmt:formatNumber value="${o.product.price}" type="number" pattern="#,###"/> đ</strong></td>
                                                     <td class="align-middle">
-                                                        <a href="updatecart?pid=${o.product.id}&amount=${o.amount-1}"><button class="btnSub">-</button></a> 
-                                                        <strong class="mx-2">${o.amount}</strong>
-                                                        <a href="updatecart?pid=${o.product.id}&amount=${o.amount+1}"><button class="btnAdd">+</button></a>
+                                                        <c:choose>
+                                                            <c:when test="${not empty o.variant}">
+                                                                <a href="updatecart?variant=${o.variant.variantId}&amount=${o.amount-1}"><button class="btnSub">-</button></a>
+                                                                <strong class="mx-2">${o.amount}</strong>
+                                                                <a href="updatecart?variant=${o.variant.variantId}&amount=${o.amount+1}"><button class="btnAdd">+</button></a>
+                                                            </c:when>
+                                                            <c:otherwise>
+                                                                <a href="updatecart?pid=${o.product.id}&amount=${o.amount-1}"><button class="btnSub">-</button></a>
+                                                                <strong class="mx-2">${o.amount}</strong>
+                                                                <a href="updatecart?pid=${o.product.id}&amount=${o.amount+1}"><button class="btnAdd">+</button></a>
+                                                            </c:otherwise>
+                                                        </c:choose>
                                                     </td>
-                                                    <td class="align-middle"><a href="deletecart?pid=${o.product.id}" class="text-dark">
-                                                            <button type="button" class="btn btn-kid-danger btn-sm">Delete</button>
-                                                        </a>
+                                                    <td class="align-middle">
+                                                        <c:choose>
+                                                            <c:when test="${not empty o.variant}">
+                                                                <a href="deletecart?variant=${o.variant.variantId}" class="text-dark">
+                                                                    <button type="button" class="btn btn-kid-danger btn-sm">Delete</button>
+                                                                </a>
+                                                            </c:when>
+                                                            <c:otherwise>
+                                                                <a href="deletecart?pid=${o.product.id}" class="text-dark">
+                                                                    <button type="button" class="btn btn-kid-danger btn-sm">Delete</button>
+                                                                </a>
+                                                            </c:otherwise>
+                                                        </c:choose>
                                                     </td>
                                                 </tr> 
                                             </c:forEach>

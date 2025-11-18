@@ -7,6 +7,8 @@ package control;
 import dao.DAO;
 import entity.Category;
 import entity.Product;
+import entity.Color;
+import entity.Size;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -48,29 +50,55 @@ public class CategoryControl extends HttpServlet {
             page = 1;
         }
 
-        String color = request.getParameter("color");
-        String size = request.getParameter("size");
-        Double min = null, max = null;
-        try { String s = request.getParameter("min"); if (s != null && !s.isEmpty()) min = Double.parseDouble(s); } catch (Exception ignore) {}
-        try { String s = request.getParameter("max"); if (s != null && !s.isEmpty()) { double v = Double.parseDouble(s); max = (v <= 0) ? null : v; } } catch (Exception ignore) {}
+        // Read filter params (same as HomeControl) so category listing supports filtering
+        String colorParam = request.getParameter("color");
+        String sizeParam = request.getParameter("size");
+        String minParam = request.getParameter("min");
+        String maxParam = request.getParameter("max");
 
-        int totalProducts = dao.getTotalProductsCountFiltered(cateId, null, color, size, min, max);
+        Integer colorId = null;
+        Integer sizeId = null;
+        double minPrice = 0;
+        double maxPrice = 1000000;
+        try { if (colorParam != null && !colorParam.isEmpty()) colorId = Integer.parseInt(colorParam); } catch (Exception ignore) {}
+        try { if (sizeParam != null && !sizeParam.isEmpty()) sizeId = Integer.parseInt(sizeParam); } catch (Exception ignore) {}
+        try { if (minParam != null && !minParam.isEmpty()) minPrice = Double.parseDouble(minParam); } catch (Exception ignore) {}
+        try { if (maxParam != null && !maxParam.isEmpty()) maxPrice = Double.parseDouble(maxParam); } catch (Exception ignore) {}
+
+        String txtParam = request.getParameter("txt");
+        String sort = request.getParameter("sort");
+
+        int totalProducts = dao.getTotalProductsCountFiltered(colorId, sizeId, minPrice, maxPrice, cateId, txtParam);
         int totalPage = (int) Math.ceil((double) totalProducts / pageSize);
         if (totalPage <= 0) totalPage = 1;
         if (page < 1) page = 1;
         if (page > totalPage) page = totalPage;
 
         int offset = (page - 1) * pageSize;
-    String sort = request.getParameter("sort");
-    List<Product> list = dao.getProductsFiltered(cateId, null, color, size, min, max, offset, pageSize, sort);
+
+        List<Product> list = dao.getProductsByFilter(offset, pageSize, sort, colorId, sizeId, minPrice, maxPrice, cateId, txtParam);
         List<Category> listC = dao.getAllCategory();
         Product last = dao.getLast();
 
+        // colors and sizes for Left.jsp
+        List<Color> colors = dao.getAllColors();
+        List<Size> sizes = dao.getAllSizes();
+
         request.setAttribute("listP", list);
         request.setAttribute("listCC", listC);
+        request.setAttribute("colorsList", colors);
+        request.setAttribute("sizesList", sizes);
         request.setAttribute("p", last);
         request.setAttribute("tag", cateID);
-    request.setAttribute("sort", sort);
+        request.setAttribute("sort", sort);
+        // Preserve filter values for JSP
+        request.setAttribute("filterColor", colorId);
+        request.setAttribute("filterSize", sizeId);
+        request.setAttribute("filterMin", minPrice);
+        request.setAttribute("filterMax", maxPrice);
+        request.setAttribute("filterCid", cateId);
+        request.setAttribute("filterTxt", txtParam);
+
         request.setAttribute("page", page);
         request.setAttribute("totalPage", totalPage);
         request.setAttribute("url", "category");

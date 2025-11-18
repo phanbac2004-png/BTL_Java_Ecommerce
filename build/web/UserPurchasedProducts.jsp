@@ -1,5 +1,6 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html>
@@ -102,6 +103,19 @@
                 height: 80px;
                 object-fit: cover;
             }
+
+            /* Variant badges */
+            .variant-badge {
+                display: inline-block;
+                background: #FCE4EC;
+                color: #C2185B;
+                border-radius: 12px;
+                padding: 4px 8px;
+                font-weight: 700;
+                font-size: 0.9em;
+                margin-right: 6px;
+            }
+            .variant-badge--muted { background:#FFF0F6; color:#AD1457; font-weight:600; }
             
             /* Hộp thông báo */
             .alert-kid {
@@ -170,7 +184,7 @@
                                         </p>
                                         <p><strong>Phương thức thanh toán:</strong>
                                             <c:choose>
-                                                <c:when test="${orderWithDetails.order.status == 'Completed'}">
+                                                <c:when test="${orderWithDetails.order.paymentMethod == 'vnpay'}">
                                                     <span class="badge badge-kid-success">
                                                         <i class="fas fa-credit-card"></i> Đã chuyển khoản (VNPay)
                                                     </span>
@@ -207,14 +221,34 @@
                                         <c:forEach items="${orderWithDetails.details}" var="detail">
                                             <tr>
                                                 <td>
-                                                    <img src="${detail.product.image}" alt="${detail.product.name}" 
-                                                         class="img-thumbnail" 
-                                                         onerror="this.src='https://via.placeholder.com/80'">
+                                                           <c:choose>
+                                                               <c:when test="${not empty detail.product.image and (fn:startsWith(detail.product.image,'/') or fn:startsWith(detail.product.image,'http'))}">
+                                                                   <c:set var="imgUrl" value="${detail.product.image}" />
+                                                               </c:when>
+                                                               <c:otherwise>
+                                                                   <c:set var="imgUrl" value="${pageContext.request.contextPath}/${detail.product.image}" />
+                                                               </c:otherwise>
+                                                           </c:choose>
+                                                           <img src="${imgUrl}" alt="${detail.product.name}" 
+                                                                class="img-thumbnail" 
+                                                                onerror="this.onerror=null;this.src='${pageContext.request.contextPath}/images/placeholder-80.svg';">
                                                 </td>
                                                 <td>
                                                     <strong>${detail.product.name}</strong>
                                                     <br>
-                                                    <small class="text-muted">ID: ${detail.product.id}</small>
+                                                    <small class="text-muted">
+                                                        <c:choose>
+                                                            <c:when test="${not empty detail.variant}">
+                                                                <c:if test="${not empty detail.variant.colorName}">
+                                                                    <span class="variant-badge" title="Màu: ${detail.variant.colorName}">${detail.variant.colorName}</span>
+                                                                </c:if>
+                                                                <c:if test="${not empty detail.variant.sizeName}">
+                                                                    <span class="variant-badge variant-badge--muted" title="Size: ${detail.variant.sizeName}">${detail.variant.sizeName}</span>
+                                                                </c:if>
+                                                            </c:when>
+                                                            <c:otherwise>ID: ${detail.product.id}</c:otherwise>
+                                                        </c:choose>
+                                                    </small>
                                                 </td>
                                                 <td>${detail.orderDetail.amount}</td>
                                                 <td><fmt:formatNumber value="${detail.orderDetail.price}" type="number" pattern="#,###"/> đ</td>

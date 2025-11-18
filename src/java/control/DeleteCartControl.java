@@ -26,8 +26,17 @@ public class DeleteCartControl extends HttpServlet {
         }
         
         String pid = request.getParameter("pid");
-        
-        if (pid != null) {
+        String variantParam = request.getParameter("variant");
+
+        if (variantParam != null) {
+            try {
+                int variantID = Integer.parseInt(variantParam);
+                DAO dao = new DAO();
+                dao.deleteCartVariant(a.getId(), variantID);
+            } catch (NumberFormatException e) {
+                // Lỗi format số
+            }
+        } else if (pid != null) {
             try {
                 int productID = Integer.parseInt(pid);
                 DAO dao = new DAO();

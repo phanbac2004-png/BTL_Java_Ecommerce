@@ -90,6 +90,8 @@
                         <th>STT</th>
                         <th>Hình ảnh</th>
                         <th>Tên sản phẩm</th>
+                        <th>Size</th>
+                        <th>Màu sắc</th>
                         <th>Giá</th>
                         <th>Số lượng đã bán</th>
                         <th>Doanh thu</th>
@@ -101,13 +103,15 @@
                             <td>${loop.index + 1}</td>
                             <td>
                                 <img src="${item.product.image}" alt="${item.product.name}" 
-                                     class="product-image" onerror="this.src='https://via.placeholder.com/80'">
+                                     class="product-image" onerror="this.onerror=null;this.src='${pageContext.request.contextPath}/images/placeholder-80.svg';">
                             </td>
                             <td>
                                 <strong>${item.product.name}</strong>
                                 <br>
                                 <small class="text-muted">ID: ${item.product.id}</small>
                             </td>
+                            <td>-</td>
+                            <td>-</td>
                             <td>
                                 <fmt:formatNumber value="${item.product.price}" 
                                                   type="number" 
@@ -130,7 +134,7 @@
                 </tbody>
                 <tfoot>
                     <tr class="table-kid-footer">
-                        <td colspan="4" class="text-right"><strong>TỔNG CỘNG:</strong></td>
+                        <td colspan="6" class="text-right"><strong>TỔNG CỘNG:</strong></td>
                         <td>
                             <strong>
                                 <c:set var="totalQuantity" value="0"/>

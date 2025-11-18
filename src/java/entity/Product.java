@@ -13,18 +13,16 @@ public class Product {
     private int id;
     private String name;
     private String image;
-    private double price;
+    private long price;
     private String title;
     private String description;
     private int cateID;
     private int quantity;
-    private String color;
-    private String size;
 
     public Product() {
     }
 
-    public Product(int id, String name, String image, double price, String title, String description) {
+    public Product(int id, String name, String image, long price, String title, String description) {
         this.id = id;
         this.name = name;
         this.image = image;
@@ -33,7 +31,7 @@ public class Product {
         this.description = description;
     }
     
-    public Product(int id, String name, String image, double price, String title, String description, int cateID) {
+    public Product(int id, String name, String image, long price, String title, String description, int cateID) {
         this.id = id;
         this.name = name;
         this.image = image;
@@ -41,22 +39,6 @@ public class Product {
         this.title = title;
         this.description = description;
         this.cateID = cateID;
-    }
-
-    public String getColor() {
-        return color;
-    }
-
-    public void setColor(String color) {
-        this.color = color;
-    }
-
-    public String getSize() {
-        return size;
-    }
-
-    public void setSize(String size) {
-        this.size = size;
     }
 
     public int getQuantity() {
@@ -91,11 +73,11 @@ public class Product {
         this.image = image;
     }
 
-    public double getPrice() {
+    public long getPrice() {
         return price;
     }
 
-    public void setPrice(double price) {
+    public void setPrice(long price) {
         this.price = price;
     }
 
@@ -125,7 +107,7 @@ public class Product {
 
     @Override
     public String toString() {
-        return "Product{" + "id=" + id + ", name=" + name + ", image=" + image + ", price=" + price + ", title=" + title + ", description=" + description + ", cateID=" + cateID + ", quantity=" + quantity + ", color=" + color + ", size=" + size + '}';
+        return "Product{" + "id=" + id + ", name=" + name + ", image=" + image + ", price=" + price + ", title=" + title + ", description=" + description + ", cateID=" + cateID + ", quantity=" + quantity + '}';
     }
     
 }

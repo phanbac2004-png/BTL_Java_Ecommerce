@@ -12,6 +12,9 @@ import entity.Product;
 import entity.Order;
 import entity.OrderDetail;
 import entity.Cart;
+import entity.Color;
+import entity.Size;
+import entity.ProductVariant;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -41,19 +44,123 @@ public class DAO {
                 Product p = new Product(rs.getInt("id"),
                         rs.getString("name"),
                         rs.getString("image"),
-                        rs.getDouble("price"),
+                        rs.getLong("price"),
                         rs.getString("title"),
                         rs.getString("description"),
                         rs.getInt("cateID"));
                 try { p.setQuantity(rs.getInt("quantity")); } catch (Exception ignore) {}
-                try { p.setColor(rs.getString("color")); } catch (Exception ignore) {}
-                try { p.setSize(rs.getString("size")); } catch (Exception ignore) {}
                 list.add(p);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
         return list;
+    }
+
+    // Get product variants by product id
+    public List<ProductVariant> getVariantsByProductId(int productId) {
+        List<ProductVariant> list = new ArrayList<>();
+        String query = "SELECT variant_id, product_id, color_id, size_id, quantity, sku FROM product_variants WHERE product_id = ?";
+        try {
+            conn = new DBContext().getConnection();
+            ps = conn.prepareStatement(query);
+            ps.setInt(1, productId);
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                ProductVariant pv = new ProductVariant(
+                        rs.getInt("variant_id"),
+                        rs.getInt("product_id"),
+                        rs.getInt("color_id"),
+                        rs.getInt("size_id"),
+                        rs.getInt("quantity"),
+                        rs.getString("sku")
+                );
+                list.add(pv);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public ProductVariant getVariantByProductColorSize(int productId, int colorId, int sizeId) {
+        String query = "SELECT variant_id, product_id, color_id, size_id, quantity, sku FROM product_variants WHERE product_id = ? AND color_id = ? AND size_id = ? LIMIT 1";
+        try {
+            conn = new DBContext().getConnection();
+            ps = conn.prepareStatement(query);
+            ps.setInt(1, productId);
+            ps.setInt(2, colorId);
+            ps.setInt(3, sizeId);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                return new ProductVariant(rs.getInt("variant_id"), rs.getInt("product_id"), rs.getInt("color_id"), rs.getInt("size_id"), rs.getInt("quantity"), rs.getString("sku"));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public ProductVariant getVariantById(int variantId) {
+        String query = "SELECT variant_id, product_id, color_id, size_id, quantity, sku FROM product_variants WHERE variant_id = ?";
+        try {
+            conn = new DBContext().getConnection();
+            ps = conn.prepareStatement(query);
+            ps.setInt(1, variantId);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                return new ProductVariant(rs.getInt("variant_id"), rs.getInt("product_id"), rs.getInt("color_id"), rs.getInt("size_id"), rs.getInt("quantity"), rs.getString("sku"));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    // Cart helpers for variant-based cart (cart table may use variant_id)
+    public int getCartAmountByVariant(int accountID, int variantID) {
+        String query = "SELECT Amount FROM cart WHERE AccountID = ? AND variant_id = ?";
+        try {
+            conn = new DBContext().getConnection();
+            ps = conn.prepareStatement(query);
+            ps.setInt(1, accountID);
+            ps.setInt(2, variantID);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("Amount");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public void addToCartVariant(int accountID, int variantID, int amount) {
+        String checkQuery = "SELECT Amount FROM cart WHERE AccountID = ? AND variant_id = ?";
+        String insertQuery = "INSERT INTO cart (AccountID, variant_id, Amount) VALUES (?,?,?)";
+        String updateQuery = "UPDATE cart SET Amount = Amount + ? WHERE AccountID = ? AND variant_id = ?";
+        try {
+            conn = new DBContext().getConnection();
+            ps = conn.prepareStatement(checkQuery);
+            ps.setInt(1, accountID);
+            ps.setInt(2, variantID);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                ps = conn.prepareStatement(updateQuery);
+                ps.setInt(1, amount);
+                ps.setInt(2, accountID);
+                ps.setInt(3, variantID);
+                ps.executeUpdate();
+            } else {
+                ps = conn.prepareStatement(insertQuery);
+                ps.setInt(1, accountID);
+                ps.setInt(2, variantID);
+                ps.setInt(3, amount);
+                ps.executeUpdate();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
     
     public List<Product> getProductByCID(int cid) {
@@ -69,13 +176,11 @@ public class DAO {
                 Product p = new Product(rs.getInt("id"),
                         rs.getString("name"),
                         rs.getString("image"),
-                        rs.getDouble("price"),
+                        rs.getLong("price"),
                         rs.getString("title"),
                         rs.getString("description"),
                         rs.getInt("cateID"));
                 try { p.setQuantity(rs.getInt("quantity")); } catch (Exception ignore) {}
-                try { p.setColor(rs.getString("color")); } catch (Exception ignore) {}
-                try { p.setSize(rs.getString("size")); } catch (Exception ignore) {}
                 list.add(p);
             }
         } catch (Exception e) {
@@ -97,7 +202,7 @@ public class DAO {
                 Product p = new Product(rs.getInt("id"),
                         rs.getString("name"),
                         rs.getString("image"),
-                        rs.getDouble("price"),
+                        rs.getLong("price"),
                         rs.getString("title"),
                         rs.getString("description"),
                         rs.getInt("cateID"));
@@ -122,13 +227,11 @@ public class DAO {
                 Product p = new Product(rs.getInt("id"),
                         rs.getString("name"),
                         rs.getString("image"),
-                        rs.getDouble("price"),
+                        rs.getLong("price"),
                         rs.getString("title"),
                         rs.getString("description"),
                         rs.getInt("cateID"));
                 try { p.setQuantity(rs.getInt("quantity")); } catch (Exception ignore) {}
-                try { p.setColor(rs.getString("color")); } catch (Exception ignore) {}
-                try { p.setSize(rs.getString("size")); } catch (Exception ignore) {}
                 return p;
             }
         } catch (Exception e) {
@@ -258,7 +361,7 @@ public class DAO {
                 return new Product(rs.getInt("id"),
                         rs.getString("name"),
                         rs.getString("image"),
-                        rs.getDouble("price"),
+                        rs.getLong("price"),
                         rs.getString("title"),
                         rs.getString("description"),
                         rs.getInt("cateID"));
@@ -267,6 +370,38 @@ public class DAO {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public List<Color> getAllColors() {
+        List<Color> list = new ArrayList<>();
+        String query = "SELECT color_id, color_name FROM color ORDER BY color_name";
+        try {
+            conn = new DBContext().getConnection();
+            ps = conn.prepareStatement(query);
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                list.add(new Color(rs.getInt("color_id"), rs.getString("color_name"))); 
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public List<Size> getAllSizes() {
+        List<Size> list = new ArrayList<>();
+        String query = "SELECT size_id, size_name FROM size ORDER BY size_order";
+        try {
+            conn = new DBContext().getConnection();
+            ps = conn.prepareStatement(query);
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                list.add(new Size(rs.getInt("size_id"), rs.getString("size_name")));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
     }
     
     public List<Product> searchByName(String txtSearch) {
@@ -282,7 +417,7 @@ public class DAO {
                 list.add(new Product(rs.getInt("id"),
                         rs.getString("name"),
                         rs.getString("image"),
-                        rs.getDouble("price"),
+                        rs.getLong("price"),
                         rs.getString("title"),
                         rs.getString("description"),
                         rs.getInt("cateID")));
@@ -340,11 +475,11 @@ public class DAO {
     }
     
     public Account checkEmailExist(String email) {
-        String query = "SELECT * FROM account WHERE email IS NOT NULL AND LOWER(TRIM(email)) = LOWER(TRIM(?))";
+        String query = "select * from account where email = ?";
         try {
             conn = new DBContext().getConnection();
             ps = conn.prepareStatement(query);
-            ps.setString(1, email != null ? email.trim() : null);
+            ps.setString(1, email);
             rs = ps.executeQuery();
             while(rs.next()) {
                 return new Account(rs.getInt(1),
@@ -579,9 +714,14 @@ public class DAO {
     
     public List<Cart> getCartByAccountID(int accountID) {
         List<Cart> list = new ArrayList<>();
-        String query = "SELECT p.*, c.Amount FROM cart c "
-                + "INNER JOIN product p ON c.ProductID = p.id "
-                + "WHERE c.AccountID = ?";
+        String query = "SELECT p.id, p.name, p.image, p.price, p.title, p.description, p.cateID, "
+            + "pv.variant_id, pv.color_id, pv.size_id, pv.quantity AS var_quantity, pv.sku, co.color_name, si.size_name, c.Amount "
+            + "FROM cart c "
+            + "INNER JOIN product_variants pv ON c.variant_id = pv.variant_id "
+            + "INNER JOIN product p ON pv.product_id = p.id "
+            + "LEFT JOIN color co ON pv.color_id = co.color_id "
+            + "LEFT JOIN size si ON pv.size_id = si.size_id "
+            + "WHERE c.AccountID = ?";
         try {
             conn = new DBContext().getConnection();
             ps = conn.prepareStatement(query);
@@ -592,20 +732,56 @@ public class DAO {
         Product p = new Product(rs.getInt("id"),
             rs.getString("name"),
             rs.getString("image"),
-            rs.getDouble("price"),
+            rs.getLong("price"),
             rs.getString("title"),
             rs.getString("description"),
             rs.getInt("cateID"));
-        try { p.setQuantity(rs.getInt("quantity")); } catch (Exception ignore) {}
-        try { p.setColor(rs.getString("color")); } catch (Exception ignore) {}
-        try { p.setSize(rs.getString("size")); } catch (Exception ignore) {}
+        try { p.setQuantity(rs.getInt("var_quantity")); } catch (Exception ignore) {}
+                int variantId = rs.getInt("variant_id");
+                int colorId = rs.getInt("color_id");
+                int sizeId = rs.getInt("size_id");
+                int varQuantity = rs.getInt("var_quantity");
+                String sku = rs.getString("sku");
+                String colorName = null;
+                String sizeName = null;
+                try { colorName = rs.getString("color_name"); } catch (Exception ignore) {}
+                try { sizeName = rs.getString("size_name"); } catch (Exception ignore) {}
                 int amount = rs.getInt("Amount");
-                list.add(new Cart(p, amount));
+                ProductVariant pv = new ProductVariant(variantId, p.getId(), colorId, sizeId, varQuantity, sku, colorName, sizeName);
+                list.add(new Cart(p, pv, amount));
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
         return list;
+    }
+
+    // Variant-aware cart update/delete helpers
+    public void updateCartVariant(int accountID, int variantID, int amount) {
+        String query = "UPDATE cart SET Amount = ? WHERE AccountID = ? AND variant_id = ?";
+        try {
+            conn = new DBContext().getConnection();
+            ps = conn.prepareStatement(query);
+            ps.setInt(1, amount);
+            ps.setInt(2, accountID);
+            ps.setInt(3, variantID);
+            ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void deleteCartVariant(int accountID, int variantID) {
+        String query = "DELETE FROM cart WHERE AccountID = ? AND variant_id = ?";
+        try {
+            conn = new DBContext().getConnection();
+            ps = conn.prepareStatement(query);
+            ps.setInt(1, accountID);
+            ps.setInt(2, variantID);
+            ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
     
     public void updateCart(int accountID, int productID, int amount) {
@@ -708,6 +884,38 @@ public class DAO {
         }
         return orderID;
     }
+
+    // New: create order with explicit payment method when DB supports it.
+    // Falls back to legacy insert if the column does not exist.
+    public int createOrder(int accountID, String phone, String address, double totalPrice, String status, String paymentMethod) {
+        String queryNew = "INSERT INTO orders (accountID, phone, address, totalPrice, status, paymentMethod) VALUES (?,?,?,?, ?, ?)";
+        int orderID = 0;
+        try {
+            conn = new DBContext().getConnection();
+            try {
+                ps = conn.prepareStatement(queryNew, PreparedStatement.RETURN_GENERATED_KEYS);
+                ps.setInt(1, accountID);
+                ps.setString(2, phone);
+                ps.setString(3, address);
+                ps.setDouble(4, totalPrice);
+                ps.setString(5, status);
+                ps.setString(6, paymentMethod);
+                ps.executeUpdate();
+                rs = ps.getGeneratedKeys();
+                if (rs.next()) {
+                    orderID = rs.getInt(1);
+                }
+            } catch (Exception ex) {
+                // Column not found or other issue: fallback to legacy method without paymentMethod
+                try { if (ps != null) ps.close(); } catch (Exception ignore) {}
+                try { if (rs != null) rs.close(); } catch (Exception ignore) {}
+                orderID = createOrder(accountID, phone, address, totalPrice, status);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return orderID;
+    }
     
     public void updateOrderStatus(int orderID, String status) {
         String query = "UPDATE orders SET status = ? WHERE id = ?";
@@ -721,20 +929,83 @@ public class DAO {
             e.printStackTrace();
         }
     }
-    
-    public void createOrderDetail(int orderID, int productID, int amount, double price) {
-        String query = "INSERT INTO orderdetails (orderID, productID, amount, price) VALUES (?,?,?,?)";
+
+    // Fetch a single order by id
+    public Order getOrderById(int orderID) {
+        String query = "SELECT * FROM orders WHERE id = ?";
         try {
             conn = new DBContext().getConnection();
             ps = conn.prepareStatement(query);
             ps.setInt(1, orderID);
-            ps.setInt(2, productID);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                String status = rs.getString("status");
+                String paymentMethod = null;
+                try { paymentMethod = rs.getString("paymentMethod"); } catch (Exception ignore) {}
+                if (paymentMethod == null || paymentMethod.isEmpty()) {
+                    paymentMethod = "Pending".equalsIgnoreCase(status) ? "vnpay" : "cod";
+                }
+                return new Order(rs.getInt("id"),
+                        rs.getInt("accountID"),
+                        rs.getString("phone"),
+                        rs.getString("address"),
+                        rs.getTimestamp("orderDate"),
+                        rs.getDouble("totalPrice"),
+                        status,
+                        paymentMethod);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
+    public void createOrderDetail(int orderID, int productID, int amount, double price) {
+        // Legacy method adapted to current schema: write order detail with optional variant_id.
+        // If caller has a variant id, prefer using createOrderDetailVariant.
+        String query = "INSERT INTO orderdetails (orderID, variant_id, amount, price) VALUES (?,?,?,?)";
+        try {
+            conn = new DBContext().getConnection();
+            ps = conn.prepareStatement(query);
+            ps.setInt(1, orderID);
+            ps.setNull(2, java.sql.Types.INTEGER); // legacy product-based calls set variant_id = NULL
             ps.setInt(3, amount);
             ps.setDouble(4, price);
             ps.executeUpdate();
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void createOrderDetailVariant(int orderID, int variantID, int amount, double price) {
+        String query = "INSERT INTO orderdetails (orderID, variant_id, amount, price) VALUES (?,?,?,?)";
+        try {
+            conn = new DBContext().getConnection();
+            ps = conn.prepareStatement(query);
+            ps.setInt(1, orderID);
+            ps.setInt(2, variantID);
+            ps.setInt(3, amount);
+            ps.setDouble(4, price);
+            ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Update product_variants stock quantity
+    public boolean updateVariantQuantity(int variantID, int newQuantity) {
+        String query = "UPDATE product_variants SET quantity = ? WHERE variant_id = ?";
+        try {
+            conn = new DBContext().getConnection();
+            ps = conn.prepareStatement(query);
+            ps.setInt(1, newQuantity);
+            ps.setInt(2, variantID);
+            int updated = ps.executeUpdate();
+            return updated > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
     
     public List<Order> getAllOrders() {
@@ -745,13 +1016,20 @@ public class DAO {
             ps = conn.prepareStatement(query);
             rs = ps.executeQuery();
             while (rs.next()) {
-                list.add(new Order(rs.getInt(1),
-                        rs.getInt(2),
-                        rs.getString(3),
-                        rs.getString(4),
-                        rs.getTimestamp(5),
-                        rs.getDouble(6),
-                        rs.getString(7)));
+                String status = rs.getString("status");
+                String paymentMethod = null;
+                try { paymentMethod = rs.getString("paymentMethod"); } catch (Exception ignore) {}
+                if (paymentMethod == null || paymentMethod.isEmpty()) {
+                    paymentMethod = "Pending".equalsIgnoreCase(status) ? "vnpay" : "cod";
+                }
+                list.add(new Order(rs.getInt("id"),
+                        rs.getInt("accountID"),
+                        rs.getString("phone"),
+                        rs.getString("address"),
+                        rs.getTimestamp("orderDate"),
+                        rs.getDouble("totalPrice"),
+                        status,
+                        paymentMethod));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -772,13 +1050,20 @@ public class DAO {
             ps.setInt(3, day);
             rs = ps.executeQuery();
             while (rs.next()) {
-                list.add(new Order(rs.getInt(1),
-                        rs.getInt(2),
-                        rs.getString(3),
-                        rs.getString(4),
-                        rs.getTimestamp(5),
-                        rs.getDouble(6),
-                        rs.getString(7)));
+                String status = rs.getString("status");
+                String paymentMethod = null;
+                try { paymentMethod = rs.getString("paymentMethod"); } catch (Exception ignore) {}
+                if (paymentMethod == null || paymentMethod.isEmpty()) {
+                    paymentMethod = "Pending".equalsIgnoreCase(status) ? "vnpay" : "cod";
+                }
+                list.add(new Order(rs.getInt("id"),
+                        rs.getInt("accountID"),
+                        rs.getString("phone"),
+                        rs.getString("address"),
+                        rs.getTimestamp("orderDate"),
+                        rs.getDouble("totalPrice"),
+                        status,
+                        paymentMethod));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -812,13 +1097,20 @@ public class DAO {
             ps = conn.prepareStatement(query);
             rs = ps.executeQuery();
             while (rs.next()) {
-                list.add(new Order(rs.getInt(1),
-                        rs.getInt(2),
-                        rs.getString(3),
-                        rs.getString(4),
-                        rs.getTimestamp(5),
-                        rs.getDouble(6),
-                        rs.getString(7)));
+                String status = rs.getString("status");
+                String paymentMethod = null;
+                try { paymentMethod = rs.getString("paymentMethod"); } catch (Exception ignore) {}
+                if (paymentMethod == null || paymentMethod.isEmpty()) {
+                    paymentMethod = "Pending".equalsIgnoreCase(status) ? "vnpay" : "cod";
+                }
+                list.add(new Order(rs.getInt("id"),
+                        rs.getInt("accountID"),
+                        rs.getString("phone"),
+                        rs.getString("address"),
+                        rs.getTimestamp("orderDate"),
+                        rs.getDouble("totalPrice"),
+                        status,
+                        paymentMethod));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -835,13 +1127,20 @@ public class DAO {
             ps.setInt(1, accountID);
             rs = ps.executeQuery();
             while (rs.next()) {
-                list.add(new Order(rs.getInt(1),
-                        rs.getInt(2),
-                        rs.getString(3),
-                        rs.getString(4),
-                        rs.getTimestamp(5),
-                        rs.getDouble(6),
-                        rs.getString(7)));
+                String status = rs.getString("status");
+                String paymentMethod = null;
+                try { paymentMethod = rs.getString("paymentMethod"); } catch (Exception ignore) {}
+                if (paymentMethod == null || paymentMethod.isEmpty()) {
+                    paymentMethod = "Pending".equalsIgnoreCase(status) ? "vnpay" : "cod";
+                }
+                list.add(new Order(rs.getInt("id"),
+                        rs.getInt("accountID"),
+                        rs.getString("phone"),
+                        rs.getString("address"),
+                        rs.getTimestamp("orderDate"),
+                        rs.getDouble("totalPrice"),
+                        status,
+                        paymentMethod));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -1055,75 +1354,174 @@ public class DAO {
     }
     
     public double getRevenueBySelectedWeek(int year, int month, int day) {
-        // Tính từ đầu tuần của ngày được chọn đến ngày đó
-        String query = "SELECT COALESCE(SUM(totalPrice), 0) FROM orders WHERE status != 'Cancelled' " +
-                      "AND YEAR(orderDate) = ? " +
-                      "AND WEEK(orderDate, 1) = WEEK(?, 1) " +
-                      "AND DATE(orderDate) <= ?";
+    // Tính doanh thu từ đầu tuần của ngày được chọn đến ngày đó
+    String query = "SELECT COALESCE(SUM(totalPrice), 0) FROM orders WHERE status != 'Cancelled' " +
+                  "AND YEAR(orderDate) = ? " +
+                  "AND WEEK(orderDate, 1) = WEEK(?, 1) " +
+                  "AND DATE(orderDate) <= ?";
+    try {
+        conn = new DBContext().getConnection();
+        ps = conn.prepareStatement(query);
+        String selectedDate = String.format("%04d-%02d-%02d", year, month, day);
+        ps.setInt(1, year);
+        ps.setString(2, selectedDate);
+        ps.setString(3, selectedDate);
+        rs = ps.executeQuery();
+        if (rs.next()) {
+            double result = rs.getDouble(1);
+            return rs.wasNull() ? 0 : result;
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return 0;
+}
+
+    // Helper to get color name by id
+    public String getColorNameById(int colorId) {
+        String query = "SELECT color_name FROM color WHERE color_id = ?";
         try {
             conn = new DBContext().getConnection();
             ps = conn.prepareStatement(query);
-            String selectedDate = String.format("%04d-%02d-%02d", year, month, day);
-            ps.setInt(1, year);
-            ps.setString(2, selectedDate);
-            ps.setString(3, selectedDate);
+            ps.setInt(1, colorId);
             rs = ps.executeQuery();
-            if (rs.next()) {
-                double result = rs.getDouble(1);
-                return rs.wasNull() ? 0 : result;
-            }
+            if (rs.next()) return rs.getString("color_name");
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return 0;
+        return null;
     }
-    
-    public double getRevenueBySelectedMonth(int year, int month, int day) {
-        // Tính từ đầu tháng của ngày được chọn đến ngày đó
-        String query = "SELECT COALESCE(SUM(totalPrice), 0) FROM orders WHERE status != 'Cancelled' " +
-                      "AND YEAR(orderDate) = ? " +
-                      "AND MONTH(orderDate) = ? " +
-                      "AND DATE(orderDate) <= ?";
+
+    // Helper to get size name by id
+    public String getSizeNameById(int sizeId) {
+        String query = "SELECT size_name FROM size WHERE size_id = ?";
         try {
             conn = new DBContext().getConnection();
             ps = conn.prepareStatement(query);
-            String selectedDate = String.format("%04d-%02d-%02d", year, month, day);
-            ps.setInt(1, year);
-            ps.setInt(2, month);
-            ps.setString(3, selectedDate);
+            ps.setInt(1, sizeId);
             rs = ps.executeQuery();
-            if (rs.next()) {
-                double result = rs.getDouble(1);
-                return rs.wasNull() ? 0 : result;
-            }
+            if (rs.next()) return rs.getString("size_name");
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return 0;
+        return null;
     }
-    
-    public double getRevenueBySelectedYear(int year, int month, int day) {
-        // Tính từ đầu năm của ngày được chọn đến ngày đó
-        String query = "SELECT COALESCE(SUM(totalPrice), 0) FROM orders WHERE status != 'Cancelled' " +
-                      "AND YEAR(orderDate) = ? " +
-                      "AND DATE(orderDate) <= ?";
-        try {
-            conn = new DBContext().getConnection();
-            ps = conn.prepareStatement(query);
-            String selectedDate = String.format("%04d-%02d-%02d", year, month, day);
-            ps.setInt(1, year);
-            ps.setString(2, selectedDate);
-            rs = ps.executeQuery();
-            if (rs.next()) {
-                double result = rs.getDouble(1);
-                return rs.wasNull() ? 0 : result;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+
+public double getRevenueBySelectedMonth(int year, int month, int day) {
+    // Tính doanh thu từ đầu tháng của ngày được chọn đến ngày đó
+    String query = "SELECT COALESCE(SUM(totalPrice), 0) FROM orders WHERE status != 'Cancelled' " +
+                  "AND YEAR(orderDate) = ? " +
+                  "AND MONTH(orderDate) = ? " +
+                  "AND DATE(orderDate) <= ?";
+    try {
+        conn = new DBContext().getConnection();
+        ps = conn.prepareStatement(query);
+        String selectedDate = String.format("%04d-%02d-%02d", year, month, day);
+        ps.setInt(1, year);
+        ps.setInt(2, month);
+        ps.setString(3, selectedDate);
+        rs = ps.executeQuery();
+        if (rs.next()) {
+            double result = rs.getDouble(1);
+            return rs.wasNull() ? 0 : result;
         }
-        return 0;
+    } catch (Exception e) {
+        e.printStackTrace();
     }
-    
+    return 0;
+}
+
+public double getRevenueBySelectedYear(int year, int month, int day) {
+    // Tính doanh thu từ đầu năm của ngày được chọn đến ngày đó
+    String query = "SELECT COALESCE(SUM(totalPrice), 0) FROM orders WHERE status != 'Cancelled' " +
+                  "AND YEAR(orderDate) = ? " +
+                  "AND DATE(orderDate) <= ?";
+    try {
+        conn = new DBContext().getConnection();
+        ps = conn.prepareStatement(query);
+        String selectedDate = String.format("%04d-%02d-%02d", year, month, day);
+        ps.setInt(1, year);
+        ps.setString(2, selectedDate);
+        rs = ps.executeQuery();
+        if (rs.next()) {
+            double result = rs.getDouble(1);
+            return rs.wasNull() ? 0 : result;
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return 0;
+}
+//    public double getRevenueBySelectedWeek(int year, int month, int day) {
+//        // Tính từ đầu tuần của ngày được chọn đến ngày đó
+//        String query = "SELECT COALESCE(SUM(totalPrice), 0) FROM orders WHERE status != 'Cancelled' " +
+//                      "AND YEAR(orderDate) = ? " +
+//                      "AND WEEK(orderDate, 1) = WEEK(?, 1) " +
+//                      "AND DATE(orderDate) <= ?";
+//        try {
+//            conn = new DBContext().getConnection();
+//            ps = conn.prepareStatement(query);
+//            String selectedDate = String.format("%04d-%02d-%02d", year, month, day);
+//            ps.setInt(1, year);
+//            ps.setString(2, selectedDate);
+//            ps.setString(3, selectedDate);
+//            rs = ps.executeQuery();
+//            if (rs.next()) {
+//                double result = rs.getDouble(1);
+//                return rs.wasNull() ? 0 : result;
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        return 0;
+//    }
+//    
+//    public double getRevenueBySelectedMonth(int year, int month, int day) {
+//        // Tính từ đầu tháng của ngày được chọn đến ngày đó
+//        String query = "SELECT COALESCE(SUM(totalPrice), 0) FROM orders WHERE status != 'Cancelled' " +
+//                      "AND YEAR(orderDate) = ? " +
+//                      "AND MONTH(orderDate) = ? " +
+//                      "AND DATE(orderDate) <= ?";
+//        try {
+//            conn = new DBContext().getConnection();
+//            ps = conn.prepareStatement(query);
+//            String selectedDate = String.format("%04d-%02d-%02d", year, month, day);
+//            ps.setInt(1, year);
+//            ps.setInt(2, month);
+//            ps.setString(3, selectedDate);
+//            rs = ps.executeQuery();
+//            if (rs.next()) {
+//                double result = rs.getDouble(1);
+//                return rs.wasNull() ? 0 : result;
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        return 0;
+//    }
+//    
+//    public double getRevenueBySelectedYear(int year, int month, int day) {
+//        // Tính từ đầu năm của ngày được chọn đến ngày đó
+//        String query = "SELECT COALESCE(SUM(totalPrice), 0) FROM orders WHERE status != 'Cancelled' " +
+//                      "AND YEAR(orderDate) = ? " +
+//                      "AND DATE(orderDate) <= ?";
+//        try {
+//            conn = new DBContext().getConnection();
+//            ps = conn.prepareStatement(query);
+//            String selectedDate = String.format("%04d-%02d-%02d", year, month, day);
+//            ps.setInt(1, year);
+//            ps.setString(2, selectedDate);
+//            rs = ps.executeQuery();
+//            if (rs.next()) {
+//                double result = rs.getDouble(1);
+//                return rs.wasNull() ? 0 : result;
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        return 0;
+//    }
+//    
     // ========== USER MANAGEMENT (ADMIN) ==========
     public List<Account> getAllAccounts() {
         List<Account> list = new ArrayList<>();
@@ -1207,19 +1605,54 @@ public class DAO {
         }
     }
     
-    public boolean updatePasswordByEmail(String email, String newPassword) {
-        String query = "UPDATE account SET pass = ? WHERE email = ?";
+    // ========== FORGOT PASSWORD METHODS ==========
+    public Account checkUsernameAndEmail(String username, String email) {
+        String query = "select * from account where user = ? and email = ?";
+        try {
+            conn = new DBContext().getConnection();
+            ps = conn.prepareStatement(query);
+            ps.setString(1, username);
+            ps.setString(2, email);
+            rs = ps.executeQuery();
+            while(rs.next()) {
+                return new Account(rs.getInt("id"),
+                        rs.getString("user"),
+                        rs.getString("pass"),
+                        rs.getString("phone") != null ? rs.getString("phone") : "",
+                        rs.getString("email") != null ? rs.getString("email") : "",
+                        rs.getInt("isSell"),
+                        rs.getInt("isAdmin"));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
+    public void updatePassword(String username, String newPassword) {
+        String query = "UPDATE account SET pass = ? WHERE user = ?";
         try {
             conn = new DBContext().getConnection();
             ps = conn.prepareStatement(query);
             ps.setString(1, newPassword);
-            ps.setString(2, email);
-            int updated = ps.executeUpdate();
-            return updated > 0;
+            ps.setString(2, username);
+            ps.executeUpdate();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return false;
+    }
+    
+    public void updatePasswordById(int accountId, String newPassword) {
+        String query = "UPDATE account SET pass = ? WHERE id = ?";
+        try {
+            conn = new DBContext().getConnection();
+            ps = conn.prepareStatement(query);
+            ps.setString(1, newPassword);
+            ps.setInt(2, accountId);
+            ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
     
     // ========== SOLD PRODUCTS MANAGEMENT (ADMIN) ==========
@@ -1269,12 +1702,13 @@ public class DAO {
     
     public List<SoldProductInfo> getSoldProducts() {
         List<SoldProductInfo> list = new ArrayList<>();
-        // Query trực tiếp lấy thông tin sản phẩm kèm theo thống kê để tránh null
+        // Use variant-aware join: orderdetails.variant_id -> product_variants -> product
         String query = "SELECT p.id, p.name, p.image, p.price, p.title, p.description, p.cateID, "
-                     + "SUM(od.amount) as totalSold, SUM(od.amount * od.price) as totalRevenue "
+                     + "SUM(od.amount) AS totalSold, SUM(od.amount * od.price) AS totalRevenue "
                      + "FROM orderdetails od "
                      + "JOIN orders o ON od.orderID = o.id "
-                     + "JOIN product p ON od.productID = p.id "
+                     + "JOIN product_variants pv ON od.variant_id = pv.variant_id "
+                     + "JOIN product p ON pv.product_id = p.id "
                      + "WHERE o.status != 'Cancelled' "
                      + "GROUP BY p.id, p.name, p.image, p.price, p.title, p.description, p.cateID "
                      + "ORDER BY totalSold DESC";
@@ -1288,7 +1722,7 @@ public class DAO {
                     rs.getInt("id"),
                     rs.getString("name"),
                     rs.getString("image"),
-                    rs.getDouble("price"),
+                    rs.getLong("price"),
                     rs.getString("title"),
                     rs.getString("description"),
                     rs.getInt("cateID")
@@ -1306,14 +1740,15 @@ public class DAO {
     
     public List<SoldProductInfo> getSoldProductsBySellID(int sellID) {
         List<SoldProductInfo> list = new ArrayList<>();
-        // Query lấy sản phẩm đã bán theo sell_ID, kèm theo trạng thái đơn hàng
+        // Variant-aware query filtered by seller id
         String query = "SELECT p.id, p.name, p.image, p.price, p.title, p.description, p.cateID, "
-                     + "SUM(od.amount) as totalSold, SUM(od.amount * od.price) as totalRevenue, "
-                     + "SUM(CASE WHEN o.status = 'Processing' THEN 1 ELSE 0 END) as processingCount, "
-                     + "SUM(CASE WHEN o.status = 'Delivered' THEN 1 ELSE 0 END) as deliveredCount "
+                     + "SUM(od.amount) AS totalSold, SUM(od.amount * od.price) AS totalRevenue, "
+                     + "SUM(CASE WHEN o.status = 'Processing' THEN 1 ELSE 0 END) AS processingCount, "
+                     + "SUM(CASE WHEN o.status = 'Delivered' THEN 1 ELSE 0 END) AS deliveredCount "
                      + "FROM orderdetails od "
                      + "JOIN orders o ON od.orderID = o.id "
-                     + "JOIN product p ON od.productID = p.id "
+                     + "JOIN product_variants pv ON od.variant_id = pv.variant_id "
+                     + "JOIN product p ON pv.product_id = p.id "
                      + "WHERE o.status != 'Cancelled' AND p.sell_ID = ? "
                      + "GROUP BY p.id, p.name, p.image, p.price, p.title, p.description, p.cateID "
                      + "ORDER BY totalSold DESC";
@@ -1327,7 +1762,7 @@ public class DAO {
                     rs.getInt("id"),
                     rs.getString("name"),
                     rs.getString("image"),
-                    rs.getDouble("price"),
+                    rs.getLong("price"),
                     rs.getString("title"),
                     rs.getString("description"),
                     rs.getInt("cateID")
@@ -1410,13 +1845,11 @@ public class DAO {
         Product p = new Product(rs.getInt("id"),
             rs.getString("name"),
             rs.getString("image"),
-            rs.getDouble("price"),
+            rs.getLong("price"),
             rs.getString("title"),
             rs.getString("description"),
             rs.getInt("cateID"));
         try { p.setQuantity(rs.getInt("quantity")); } catch (Exception ignore) {}
-        try { p.setColor(rs.getString("color")); } catch (Exception ignore) {}
-        try { p.setSize(rs.getString("size")); } catch (Exception ignore) {}
         list.add(p);
             }
         } catch (Exception e) {
@@ -1460,14 +1893,111 @@ public class DAO {
         Product p = new Product(rs.getInt("id"),
             rs.getString("name"),
             rs.getString("image"),
-            rs.getDouble("price"),
+            rs.getLong("price"),
             rs.getString("title"),
             rs.getString("description"),
             rs.getInt("cateID"));
         try { p.setQuantity(rs.getInt("quantity")); } catch (Exception ignore) {}
-        try { p.setColor(rs.getString("color")); } catch (Exception ignore) {}
-        try { p.setSize(rs.getString("size")); } catch (Exception ignore) {}
         list.add(p);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    // Count products matching filters (color, size, price range, optional category, optional text)
+    public int getTotalProductsCountFiltered(Integer colorId, Integer sizeId, double minPrice, double maxPrice, Integer cid, String txtSearch) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("SELECT COUNT(DISTINCT p.id) FROM product p LEFT JOIN product_variants pv ON pv.product_id = p.id WHERE p.price BETWEEN ? AND ? AND pv.quantity > 0");
+        if (colorId != null && colorId > 0) {
+            sb.append(" AND pv.color_id = ?");
+        }
+        if (sizeId != null && sizeId > 0) {
+            sb.append(" AND pv.size_id = ?");
+        }
+        if (cid != null) {
+            sb.append(" AND p.cateID = ?");
+        }
+        if (txtSearch != null && !txtSearch.trim().isEmpty()) {
+            sb.append(" AND p.name LIKE ?");
+        }
+
+        try {
+            conn = new DBContext().getConnection();
+            ps = conn.prepareStatement(sb.toString());
+            int idx = 1;
+            ps.setDouble(idx++, minPrice);
+            ps.setDouble(idx++, maxPrice);
+            if (colorId != null && colorId > 0) ps.setInt(idx++, colorId);
+            if (sizeId != null && sizeId > 0) ps.setInt(idx++, sizeId);
+            if (cid != null) ps.setInt(idx++, cid);
+            if (txtSearch != null && !txtSearch.trim().isEmpty()) ps.setString(idx++, "%" + txtSearch + "%");
+
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    // Fetch products matching filters with pagination and simple sorting (price asc/desc)
+    public List<Product> getProductsByFilter(int offset, int limit, String sort, Integer colorId, Integer sizeId, double minPrice, double maxPrice, Integer cid, String txtSearch) {
+        List<Product> list = new ArrayList<>();
+        StringBuilder sb = new StringBuilder();
+        sb.append("SELECT DISTINCT p.* FROM product p JOIN product_variants pv ON pv.product_id = p.id WHERE p.price BETWEEN ? AND ? AND pv.quantity > 0");
+        if (colorId != null && colorId > 0) {
+            sb.append(" AND pv.color_id = ?");
+        }
+        if (sizeId != null && sizeId > 0) {
+            sb.append(" AND pv.size_id = ?");
+        }
+        if (cid != null) {
+            sb.append(" AND p.cateID = ?");
+        }
+        if (txtSearch != null && !txtSearch.trim().isEmpty()) {
+            sb.append(" AND p.name LIKE ?");
+        }
+
+        // Sorting
+        if ("price_asc".equals(sort)) {
+            sb.append(" ORDER BY p.price ASC");
+        } else if ("price_desc".equals(sort)) {
+            sb.append(" ORDER BY p.price DESC");
+        } else {
+            sb.append(" ORDER BY p.id DESC");
+        }
+
+        sb.append(" LIMIT ? OFFSET ?");
+
+        try {
+            conn = new DBContext().getConnection();
+            ps = conn.prepareStatement(sb.toString());
+            int idx = 1;
+            ps.setDouble(idx++, minPrice);
+            ps.setDouble(idx++, maxPrice);
+            if (colorId != null && colorId > 0) ps.setInt(idx++, colorId);
+            if (sizeId != null && sizeId > 0) ps.setInt(idx++, sizeId);
+            if (cid != null) ps.setInt(idx++, cid);
+            if (txtSearch != null && !txtSearch.trim().isEmpty()) ps.setString(idx++, "%" + txtSearch + "%");
+
+            ps.setInt(idx++, limit);
+            ps.setInt(idx++, offset);
+
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                Product p = new Product(rs.getInt("id"),
+                        rs.getString("name"),
+                        rs.getString("image"),
+                        rs.getLong("price"),
+                        rs.getString("title"),
+                        rs.getString("description"),
+                        rs.getInt("cateID"));
+                try { p.setQuantity(rs.getInt("quantity")); } catch (Exception ignore) {}
+                list.add(p);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -1490,7 +2020,7 @@ public class DAO {
         Product p = new Product(rs.getInt("id"),
             rs.getString("name"),
             rs.getString("image"),
-            rs.getDouble("price"),
+            rs.getLong("price"),
             rs.getString("title"),
             rs.getString("description"),
             rs.getInt("cateID"));
@@ -1540,7 +2070,7 @@ public class DAO {
         Product p = new Product(rs.getInt("id"),
             rs.getString("name"),
             rs.getString("image"),
-            rs.getDouble("price"),
+            rs.getLong("price"),
             rs.getString("title"),
             rs.getString("description"),
             rs.getInt("cateID"));
@@ -1584,7 +2114,7 @@ public class DAO {
                 list.add(new Product(rs.getInt("id"),
                         rs.getString("name"),
                         rs.getString("image"),
-                        rs.getDouble("price"),
+                        rs.getLong("price"),
                         rs.getString("title"),
                         rs.getString("description"),
                         rs.getInt("cateID")));
@@ -1632,7 +2162,7 @@ public class DAO {
                 list.add(new Product(rs.getInt("id"),
                         rs.getString("name"),
                         rs.getString("image"),
-                        rs.getDouble("price"),
+                        rs.getLong("price"),
                         rs.getString("title"),
                         rs.getString("description"),
                         rs.getInt("cateID")));
@@ -1657,173 +2187,6 @@ public class DAO {
             e.printStackTrace();
         }
         return 0;
-    }
-    
-    // Generic filtered count across pages (home/category/search) with optional filters
-    public int getTotalProductsCountFiltered(Integer cid, String txt, String color, String size, Double min, Double max) {
-        StringBuilder sb = new StringBuilder("SELECT COUNT(*) FROM product p WHERE 1=1");
-        List<Object> params = new ArrayList<>();
-        String colorParam = color != null ? color.trim().toLowerCase() : null;
-        String sizeParam = size != null ? size.trim().toUpperCase() : null;
-        String vnColor = mapToVietnameseColor(colorParam);
-        if (cid != null) {
-            sb.append(" AND p.cateID = ?");
-            params.add(cid);
-        }
-        if (txt != null && !txt.isEmpty()) {
-            sb.append(" AND p.name LIKE ?");
-            params.add("%" + txt + "%");
-        }
-        if (colorParam != null && !colorParam.isEmpty()) {
-            sb.append(" AND ( (p.color IS NOT NULL AND LOWER(p.color) = ?) ");
-            params.add(colorParam);
-            if (vnColor != null && !vnColor.isEmpty()) {
-                sb.append(" OR (LOWER(p.title) LIKE ? OR LOWER(p.description) LIKE ?) ");
-                params.add("%" + vnColor + "%");
-                params.add("%" + vnColor + "%");
-            }
-            sb.append(")");
-        }
-        if (sizeParam != null && !sizeParam.isEmpty()) {
-            sb.append(" AND ( (p.size IS NOT NULL AND UPPER(p.size) = ?) ");
-            params.add(sizeParam);
-            // Fallback: try to find size token in title/description if any
-            sb.append(" OR (LOWER(p.title) LIKE ? OR LOWER(p.description) LIKE ?) )");
-            String sizeLike = "%" + sizeParam.toLowerCase() + "%";
-            params.add(sizeLike);
-            params.add(sizeLike);
-        }
-        if (min != null) {
-            sb.append(" AND p.price >= ?");
-            params.add(min);
-        }
-        if (max != null && max > 0) {
-            sb.append(" AND p.price <= ?");
-            params.add(max);
-        }
-        try {
-            conn = new DBContext().getConnection();
-            ps = conn.prepareStatement(sb.toString());
-            for (int i = 0; i < params.size(); i++) {
-                ps.setObject(i + 1, params.get(i));
-            }
-            rs = ps.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return 0;
-    }
-    
-    // Unified filtered listing with pagination and sort
-    public List<Product> getProductsFiltered(Integer cid, String txt, String color, String size, Double min, Double max,
-                                             int offset, int limit, String sort) {
-        List<Product> list = new ArrayList<>();
-        boolean sortPopular = "popular".equals(sort);
-        StringBuilder sb = new StringBuilder();
-        if (sortPopular) {
-            sb.append("SELECT p.*, COALESCE(SUM(od.amount),0) as sold ")
-              .append("FROM product p LEFT JOIN orderdetails od ON p.id = od.productID WHERE 1=1");
-        } else {
-            sb.append("SELECT p.* FROM product p WHERE 1=1");
-        }
-        List<Object> params = new ArrayList<>();
-        String colorParam = color != null ? color.trim().toLowerCase() : null;
-        String sizeParam = size != null ? size.trim().toUpperCase() : null;
-        String vnColor = mapToVietnameseColor(colorParam);
-        if (cid != null) {
-            sb.append(" AND p.cateID = ?");
-            params.add(cid);
-        }
-        if (txt != null && !txt.isEmpty()) {
-            sb.append(" AND p.name LIKE ?");
-            params.add("%" + txt + "%");
-        }
-        if (colorParam != null && !colorParam.isEmpty()) {
-            sb.append(" AND ( (p.color IS NOT NULL AND LOWER(p.color) = ?) ");
-            params.add(colorParam);
-            if (vnColor != null && !vnColor.isEmpty()) {
-                sb.append(" OR (LOWER(p.title) LIKE ? OR LOWER(p.description) LIKE ?) ");
-                params.add("%" + vnColor + "%");
-                params.add("%" + vnColor + "%");
-            }
-            sb.append(")");
-        }
-        if (sizeParam != null && !sizeParam.isEmpty()) {
-            sb.append(" AND ( (p.size IS NOT NULL AND UPPER(p.size) = ?) ");
-            params.add(sizeParam);
-            // Fallback: try to find size token in title/description if any
-            sb.append(" OR (LOWER(p.title) LIKE ? OR LOWER(p.description) LIKE ?) )");
-            String sizeLike = "%" + sizeParam.toLowerCase() + "%";
-            params.add(sizeLike);
-            params.add(sizeLike);
-        }
-        if (min != null) {
-            sb.append(" AND p.price >= ?");
-            params.add(min);
-        }
-        if (max != null && max > 0) {
-            sb.append(" AND p.price <= ?");
-            params.add(max);
-        }
-        if (sortPopular) {
-            sb.append(" GROUP BY p.id ORDER BY sold DESC");
-        } else if ("price_asc".equals(sort)) {
-            sb.append(" ORDER BY p.price ASC");
-        } else if ("price_desc".equals(sort)) {
-            sb.append(" ORDER BY p.price DESC");
-        } else {
-            sb.append(" ORDER BY p.id ASC");
-        }
-        sb.append(" LIMIT ? OFFSET ?");
-        try {
-            conn = new DBContext().getConnection();
-            ps = conn.prepareStatement(sb.toString());
-            int idx = 1;
-            for (Object o : params) {
-                ps.setObject(idx++, o);
-            }
-            ps.setInt(idx++, limit);
-            ps.setInt(idx, offset);
-            rs = ps.executeQuery();
-            while (rs.next()) {
-                Product p = new Product(rs.getInt("id"),
-                        rs.getString("name"),
-                        rs.getString("image"),
-                        rs.getDouble("price"),
-                        rs.getString("title"),
-                        rs.getString("description"),
-                        rs.getInt("cateID"));
-                try { p.setQuantity(rs.getInt("quantity")); } catch (Exception ignore) {}
-                try { p.setColor(rs.getString("color")); } catch (Exception ignore) {}
-                try { p.setSize(rs.getString("size")); } catch (Exception ignore) {}
-                list.add(p);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return list;
-    }
-    
-    // Map English color keywords to Vietnamese tokens used in product titles/descriptions
-    private String mapToVietnameseColor(String colorLower) {
-        if (colorLower == null) return null;
-        switch (colorLower) {
-            case "red": return "đỏ";
-            case "pink": return "hồng";
-            case "blue": return "xanh";
-            case "white": return "trắng";
-            case "black": return "đen";
-            case "green": return "xanh lá";
-            case "yellow": return "vàng";
-            case "brown": return "nâu";
-            case "gray":
-            case "grey": return "xám";
-            case "beige": return "be";
-            default: return colorLower; // fallback to provided token
-        }
     }
     
     public int getTotalCustomersCount() {

@@ -26,31 +26,54 @@ public class UpdateCartControl extends HttpServlet {
         }
         
         String pid = request.getParameter("pid");
+        String variantParam = request.getParameter("variant");
         String amountStr = request.getParameter("amount");
         
-        if (pid != null && amountStr != null) {
+        if ((variantParam != null || pid != null) && amountStr != null) {
             try {
-                int productID = Integer.parseInt(pid);
                 int amount = Integer.parseInt(amountStr);
-                
                 DAO dao = new DAO();
                 if (amount <= 0) {
-                    // Xóa khỏi giỏ hàng nếu số lượng <= 0
-                    dao.deleteCart(a.getId(), productID);
-                } else {
-                    // Validate against stock
-                    entity.Product prod = dao.getProductByID(productID);
-                    if (prod == null) {
-                        dao.deleteCart(a.getId(), productID);
+                    // delete by variant if provided, otherwise by product
+                    if (variantParam != null) {
+                        int variantID = Integer.parseInt(variantParam);
+                        dao.deleteCartVariant(a.getId(), variantID);
                     } else {
-                        int available = prod.getQuantity();
-                        if (amount > available) {
-                            HttpSession s = request.getSession();
-                            s.setAttribute("errorMessage", "Không thể cập nhật: số lượng yêu cầu vượt quá kho (" + available + ")");
-                            response.sendRedirect("cart");
-                            return;
+                        int productID = Integer.parseInt(pid);
+                        dao.deleteCart(a.getId(), productID);
+                    }
+                } else {
+                    if (variantParam != null) {
+                        int variantID = Integer.parseInt(variantParam);
+                        // Validate against variant stock
+                        entity.ProductVariant pv = dao.getVariantById(variantID);
+                        if (pv == null) {
+                            dao.deleteCartVariant(a.getId(), variantID);
+                        } else {
+                            int available = pv.getQuantity();
+                            if (amount > available) {
+                                HttpSession s = request.getSession();
+                                s.setAttribute("errorMessage", "Không thể cập nhật: số lượng yêu cầu vượt quá kho (" + available + ")");
+                                response.sendRedirect("cart");
+                                return;
+                            }
+                            dao.updateCartVariant(a.getId(), variantID, amount);
                         }
-                        dao.updateCart(a.getId(), productID, amount);
+                    } else {
+                        int productID = Integer.parseInt(pid);
+                        entity.Product prod = dao.getProductByID(productID);
+                        if (prod == null) {
+                            dao.deleteCart(a.getId(), productID);
+                        } else {
+                            int available = prod.getQuantity();
+                            if (amount > available) {
+                                HttpSession s = request.getSession();
+                                s.setAttribute("errorMessage", "Không thể cập nhật: số lượng yêu cầu vượt quá kho (" + available + ")");
+                                response.sendRedirect("cart");
+                                return;
+                            }
+                            dao.updateCart(a.getId(), productID, amount);
+                        }
                     }
                 }
             } catch (NumberFormatException e) {

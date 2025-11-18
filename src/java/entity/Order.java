@@ -10,6 +10,7 @@ public class Order {
     private Timestamp orderDate;
     private double totalPrice;
     private String status;
+    private String paymentMethod; // "vnpay" or "cod"
 
     public Order() {
     }
@@ -22,6 +23,17 @@ public class Order {
         this.orderDate = orderDate;
         this.totalPrice = totalPrice;
         this.status = status;
+    }
+
+    public Order(int id, int accountID, String phone, String address, Timestamp orderDate, double totalPrice, String status, String paymentMethod) {
+        this.id = id;
+        this.accountID = accountID;
+        this.phone = phone;
+        this.address = address;
+        this.orderDate = orderDate;
+        this.totalPrice = totalPrice;
+        this.status = status;
+        this.paymentMethod = paymentMethod;
     }
 
     public int getId() {
@@ -62,6 +74,14 @@ public class Order {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(String paymentMethod) {
+        this.paymentMethod = paymentMethod;
     }
 
     public String getPhone() {

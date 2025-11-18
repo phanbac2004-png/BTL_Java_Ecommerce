@@ -625,14 +625,14 @@
                     <div class="col-lg-3 col-md-4 col-sm-6 mb-4 product-item">
                         <div class="product-card">
                             <img class="card-img-top" src="${o.image}" alt="${o.name}" 
-                                 onerror="this.src='https://via.placeholder.com/300x300/ffe6f2/ff4da6?text=KIDDY'">
+                                 onerror="this.onerror=null;this.src='${pageContext.request.contextPath}/images/placeholder-300.svg';">
                             <div class="card-body">
                                 <a href="detail?pid=${o.id}" class="product-name">${o.name}</a>
                                 <p class="product-description">${o.title}</p>
                                 <div class="product-price"><fmt:formatNumber value="${o.price}" type="number" pattern="#,###"/> đ</div>
-                                <button class="btn-add-cart" data-product-id="${o.id}">
+                                <a href="detail?pid=${o.id}" class="btn-add-cart" role="button">
                                     <i class="fas fa-cart-plus me-2"></i>Thêm vào giỏ
-                                </button>
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -739,51 +739,59 @@
     </footer>
 
     <script>
-        // Cart functionality
+        // Cart functionality: bind only product add buttons, require login for server-side add
         document.addEventListener('DOMContentLoaded', function() {
-            // Add to cart buttons
-            document.querySelectorAll('.btn-add-cart').forEach(btn => {
-                btn.addEventListener('click', function() {
+            // server-side login flag rendered by JSP
+            var isLoggedIn = false;
+            <c:if test="${not empty sessionScope.acc}">
+                isLoggedIn = true;
+            </c:if>
+
+            // Bind only actual <button> add-to-cart controls that add via AJAX (kept for other pages)
+            document.querySelectorAll('button.btn-add-cart[data-product-id]').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
                     const productId = this.getAttribute('data-product-id');
-                    addToCart(productId);
+                    if (isLoggedIn) {
+                        // Call server to add to cart
+                        $.post(window.location.pathname.replace(/[^\/]*$/, '') + 'addtocart', { pid: productId }, function(resp) {
+                            var data = resp;
+                            try { if (typeof resp === 'string') data = JSON.parse(resp); } catch (ex) { }
+                            if (data && data.success) {
+                                const countEl = document.querySelector('.cart-count');
+                                if (countEl) {
+                                    let current = parseInt(countEl.textContent) || 0;
+                                    countEl.textContent = current + 1;
+                                }
+                                showNotification(data.message || 'Đã thêm vào giỏ hàng!');
+                            } else {
+                                if (data && data.message && data.message.toLowerCase().indexOf('đăng nhập') !== -1) {
+                                    window.location.href = 'Login.jsp';
+                                } else {
+                                    showNotification((data && data.message) || 'Thêm vào giỏ hàng thất bại');
+                                }
+                            }
+                        }, 'json').fail(function() {
+                            showNotification('Lỗi kết nối tới server');
+                        });
+                    } else {
+                        // Not logged in -> redirect to login page
+                        window.location.href = 'Login.jsp';
+                    }
                 });
             });
 
-            function addToCart(productId) {
-                // Get current cart from localStorage
-                let cart = JSON.parse(localStorage.getItem('kiddyCart')) || [];
-                
-                // Check if product already in cart
-                const existingItem = cart.find(item => item.id === productId);
-                
-                if (existingItem) {
-                    existingItem.quantity += 1;
-                } else {
-                    // Add new product to cart
-                    cart.push({
-                        id: productId,
-                        quantity: 1
-                    });
-                }
-                
-                // Save back to localStorage
-                localStorage.setItem('kiddyCart', JSON.stringify(cart));
-                
-                // Update cart count
-                updateCartCount();
-                
-                // Show success message
-                showNotification('Đã thêm sản phẩm vào giỏ hàng!');
-            }
-
             function updateCartCount() {
-                const cart = JSON.parse(localStorage.getItem('kiddyCart')) || [];
-                const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
-                document.querySelector('.cart-count').textContent = totalItems;
+                // For guests (not logged in), show localStorage count; for logged-in users the server typically renders the count.
+                if (!isLoggedIn) {
+                    const cart = JSON.parse(localStorage.getItem('kiddyCart')) || [];
+                    const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
+                    const el = document.querySelector('.cart-count');
+                    if (el) el.textContent = totalItems;
+                }
             }
 
             function showNotification(message) {
-                // Create toast element
                 const toast = document.createElement('div');
                 toast.className = 'alert alert-success position-fixed';
                 toast.style.cssText = `
@@ -804,16 +812,11 @@
                 toast.innerHTML = `
                     <i class="fas fa-check-circle me-2"></i>${message}
                 `;
-                
                 document.body.appendChild(toast);
-                
-                // Remove after 3 seconds
-                setTimeout(() => {
-                    toast.remove();
-                }, 3000);
+                setTimeout(() => { toast.remove(); }, 3000);
             }
 
-            // Initialize cart count
+            // Initialize cart count on page load
             updateCartCount();
         });
     </script>

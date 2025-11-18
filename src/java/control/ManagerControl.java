@@ -8,6 +8,8 @@ import dao.DAO;
 import entity.Account;
 import entity.Category;
 import entity.Product;
+import entity.Color;
+import entity.Size;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -61,6 +63,11 @@ public class ManagerControl extends HttpServlet {
         
         request.setAttribute("listP", list);
         request.setAttribute("listCC", listC);
+        // colors and sizes for Left.jsp (if rendered)
+        List<Color> colors = dao.getAllColors();
+        List<Size> sizes = dao.getAllSizes();
+        request.setAttribute("colorsList", colors);
+        request.setAttribute("sizesList", sizes);
         
         // Lấy messages từ session nếu có
         if (session.getAttribute("successMsg") != null) {

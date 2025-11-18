@@ -1,5 +1,6 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html>
@@ -24,6 +25,9 @@
         tfoot td { background: #FCE4EC; color: #AD1457; font-weight: 700; }
         .text-right { text-align: right; }
         .small { font-size: 12px; color: #666; }
+        /* Variant badges */
+        .variant-badge { display:inline-block; background:#FCE4EC; color:#C2185B; border-radius:10px; padding:4px 8px; font-weight:700; font-size:0.85em; margin-right:6px; }
+        .variant-badge--muted { background:#FFF0F6; color:#AD1457; font-weight:600; }
         @media print {
             @page { size: A4; margin: 15mm; }
             body { margin: 0; }
@@ -81,13 +85,37 @@
                         <tr>
                             <td style="text-align:center;vertical-align:middle;">
                                 <c:choose>
-                                    <c:when test="${not empty listProducts and listProducts[loop.index] != null and not empty listProducts[loop.index].image}">
-                                        <img src="${listProducts[loop.index].image}" style="max-width:60px;max-height:60px;object-fit:cover;border-radius:6px;" alt="">
-                                    </c:when>
+                                        <c:when test="${not empty listProducts and listProducts[loop.index] != null and not empty listProducts[loop.index].image}">
+                                            <c:choose>
+                                                <c:when test="${fn:startsWith(listProducts[loop.index].image,'/') or fn:startsWith(listProducts[loop.index].image,'http')}">
+                                                    <c:set var="imgUrl" value="${listProducts[loop.index].image}" />
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <c:set var="imgUrl" value="${pageContext.request.contextPath}/${listProducts[loop.index].image}" />
+                                                </c:otherwise>
+                                            </c:choose>
+                                            <img src="${imgUrl}" style="max-width:60px;max-height:60px;object-fit:cover;border-radius:6px;" alt="">
+                                        </c:when>
                                     <c:otherwise>-</c:otherwise>
                                 </c:choose>
                             </td>
-                            <td style="vertical-align:middle;">${listProducts[loop.index].name}</td>
+                                <td style="vertical-align:middle;">
+                                    ${listProducts[loop.index].name}
+                                    <br>
+                                    <small class="small text-muted">
+                                        <c:choose>
+                                            <c:when test="${not empty listVariants and not empty listVariants[loop.index]}">
+                                                <c:if test="${not empty listVariants[loop.index].colorName}">
+                                                    <span class="variant-badge" title="Màu: ${listVariants[loop.index].colorName}">${listVariants[loop.index].colorName}</span>
+                                                </c:if>
+                                                <c:if test="${not empty listVariants[loop.index].sizeName}">
+                                                    <span class="variant-badge variant-badge--muted" title="Size: ${listVariants[loop.index].sizeName}">${listVariants[loop.index].sizeName}</span>
+                                                </c:if>
+                                            </c:when>
+                                            <c:otherwise></c:otherwise>
+                                        </c:choose>
+                                    </small>
+                                </td>
                             <td style="vertical-align:middle;">${od.amount}</td>
                             <td style="vertical-align:middle;" class="text-right"><fmt:formatNumber value="${od.price}" type="number" pattern="#,###"/> đ</td>
                             <td style="vertical-align:middle;" class="text-right"><fmt:formatNumber value="${od.price * od.amount}" type="number" pattern="#,###"/> đ</td>

@@ -3,7 +3,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 
 <style>
-    /* Tiêu đề trang */
+    /* Tiêu đề trang */ /* trang đầu tiên */
     .page-title {
         color: #C2185B; /* Màu hồng đậm */
         font-family: 'Nunito', sans-serif;

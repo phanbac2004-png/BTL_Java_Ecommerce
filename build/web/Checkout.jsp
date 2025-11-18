@@ -1,5 +1,6 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html>
@@ -116,6 +117,19 @@
                 border-radius: 10px;
                 border-color: #FCE4EC;
             }
+
+            /* Variant badges */
+            .variant-badge {
+                display: inline-block;
+                background: #FCE4EC;
+                color: #C2185B;
+                border-radius: 12px;
+                padding: 4px 8px;
+                font-weight: 700;
+                font-size: 0.85em;
+                margin-right: 6px;
+            }
+            .variant-badge--muted { background:#FFF0F6; color:#AD1457; font-weight:600; }
         </style>
         </head>
     <body>
@@ -146,21 +160,20 @@
                                 </div>
                                 
                                 <input type="hidden" name="total" value="${total}">
-                                <input type="hidden" name="paymentMethod" id="paymentMethod" value="">
                                 
                                 <div class="form-group">
                                     <label><strong>Phương thức thanh toán *</strong></label>
                                     <div class="card mb-3 payment-card">
                                         <div class="card-body">
                                             <div class="form-check mb-3">
-                                                <input class="form-check-input" type="radio" name="payment" id="cod" value="cod" checked>
+                                                <input class="form-check-input" type="radio" name="paymentMethod" id="cod" value="cod" checked>
                                                 <label class="form-check-label" for="cod">
                                                     <i class="fas fa-hand-holding-usd"></i> <strong>Thanh toán khi nhận hàng (COD)</strong>
                                                     <br><small class="text-muted">Bạn sẽ thanh toán khi nhận được hàng</small>
                                                 </label>
                                             </div>
                                             <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="payment" id="vnpay" value="vnpay">
+                                                <input class="form-check-input" type="radio" name="paymentMethod" id="vnpay" value="vnpay">
                                                 <label class="form-check-label" for="vnpay">
                                                     <i class="fas fa-credit-card"></i> <strong>Thanh toán bằng VNPay</strong>
                                                     <br><small class="text-muted">Thanh toán trực tuyến qua VNPay</small>
@@ -169,7 +182,7 @@
                                         </div>
                                     </div>
                                     
-                                    <div id="vnpayQRCode" style="display: none; margin-top: 20px;">
+                                    <!-- <div id="vnpayQRCode" style="display: none; margin-top: 20px;">
                                         <div class="card border-kid-pink">
                                             <div class="card-body text-center">
                                                 <h5 class="card-title mb-3">
@@ -196,7 +209,7 @@
                                                 </p>
                                             </div>
                                         </div>
-                                    </div>
+                                    </div> -->
                                 </div>
                                 
                                 <div class="form-group">
@@ -207,45 +220,45 @@
                             </form>
                             <script>
                                 // (JavaScript giữ nguyên)
-                                function generateQRCode(amount) {
-                                    var vietqrData = 'VNPAY_PAYMENT_' + amount + '_' + Date.now();
-                                    qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=' + encodeURIComponent(vietqrData);
-                                    return qrUrl;
-                                }
+                                // function generateQRCode(amount) {
+                                //     var vietqrData = 'VNPAY_PAYMENT_' + amount + '_' + Date.now();
+                                //     qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=' + encodeURIComponent(vietqrData);
+                                //     return qrUrl;
+                                // }
                                 
-                                document.querySelectorAll('input[name="payment"]').forEach(function(radio) {
-                                    radio.addEventListener('change', function() {
-                                        var btnText = document.getElementById('btnText');
-                                        var qrCodeDiv = document.getElementById('vnpayQRCode');
-                                        var totalAmount = ${total};
+                                // document.querySelectorAll('input[name="payment"]').forEach(function(radio) {
+                                //     radio.addEventListener('change', function() {
+                                //         var btnText = document.getElementById('btnText');
+                                //         var qrCodeDiv = document.getElementById('vnpayQRCode');
+                                //         var totalAmount = ${total};
                                         
-                                        if (this.value === 'cod') {
-                                            btnText.textContent = 'Xác nhận đặt hàng';
-                                            qrCodeDiv.style.display = 'none';
-                                        } else if (this.value === 'vnpay') {
-                                            btnText.textContent = 'Đặt hàng thành công';
-                                            qrCodeDiv.style.display = 'block';
-                                            var qrUrl = generateQRCode(totalAmount);
-                                            document.getElementById('qrImage').src = qrUrl;
-                                        }
-                                    });
-                                });
+                                //         if (this.value === 'cod') {
+                                //             btnText.textContent = 'Xác nhận đặt hàng';
+                                //             qrCodeDiv.style.display = 'none';
+                                //         } else if (this.value === 'vnpay') {
+                                //             btnText.textContent = 'Đặt hàng thành công';
+                                //             qrCodeDiv.style.display = 'block';
+                                //             var qrUrl = generateQRCode(totalAmount);
+                                //             document.getElementById('qrImage').src = qrUrl;
+                                //         }
+                                //     });
+                                // });
                                 
-                                window.addEventListener('DOMContentLoaded', function() {
-                                    var vnpayRadio = document.getElementById('vnpay');
-                                    if (vnpayRadio && vnpayRadio.checked) {
-                                        var qrCodeDiv = document.getElementById('vnpayQRCode');
-                                        var totalAmount = ${total};
-                                        qrCodeDiv.style.display = 'block';
-                                        var qrUrl = generateQRCode(totalAmount);
-                                        document.getElementById('qrImage').src = qrUrl;
-                                    }
-                                });
+                                // window.addEventListener('DOMContentLoaded', function() {
+                                //     var vnpayRadio = document.getElementById('vnpay');
+                                //     if (vnpayRadio && vnpayRadio.checked) {
+                                //         var qrCodeDiv = document.getElementById('vnpayQRCode');
+                                //         var totalAmount = ${total};
+                                //         qrCodeDiv.style.display = 'block';
+                                //         var qrUrl = generateQRCode(totalAmount);
+                                //         document.getElementById('qrImage').src = qrUrl;
+                                //     }
+                                // });
                                 
                                 document.querySelector('form').addEventListener('submit', function(e) {
-                                    var paymentMethod = document.querySelector('input[name="payment"]:checked').value;
-                                    document.getElementById('paymentMethod').value = paymentMethod;
-                                    
+                                    var sel = document.querySelector('input[name="paymentMethod"]:checked');
+                                    var paymentMethod = sel ? sel.value : '';
+
                                     if (paymentMethod === 'cod') {
                                         if (!confirm('Xác nhận đặt hàng?')) {
                                             e.preventDefault();
@@ -269,11 +282,34 @@
                                     <c:forEach items="${list}" var="o">
                                         <tr>
                                             <td>
-                                                <img src="${o.product.image}" width="50" height="50" class="img-thumbnail">
+                                                <c:choose>
+                                                    <c:when test="${not empty o.product.image and (fn:startsWith(o.product.image,'/') or fn:startsWith(o.product.image,'http'))}">
+                                                        <c:set var="imgUrl" value="${o.product.image}" />
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <c:set var="imgUrl" value="${pageContext.request.contextPath}/${o.product.image}" />
+                                                    </c:otherwise>
+                                                </c:choose>
+                                                <img src="${imgUrl}" width="50" height="50" class="img-thumbnail"
+                                                     onerror="this.onerror=null;this.src='${pageContext.request.contextPath}/images/placeholder-80.svg';">
                                             </td>
-                                            <td>
+                                            <td>    
                                                 <small>${o.product.name}</small><br>
-                                                <small class="text-muted">SL: ${o.amount}</small>
+                                                <small class="text-muted">
+                                                    <c:choose>
+                                                        <c:when test="${not empty o.variant}">
+                                                            <c:if test="${not empty o.variant.colorName}">
+                                                                <span class="variant-badge" title="Màu: ${o.variant.colorName}">${o.variant.colorName}</span>
+                                                            </c:if>
+                                                            <c:if test="${not empty o.variant.sizeName}">
+                                                                <span class="variant-badge variant-badge--muted" title="Size: ${o.variant.sizeName}">${o.variant.sizeName}</span>
+                                                            </c:if>
+                                                        </c:when>
+                                                        <c:otherwise>ID: ${o.product.id}</c:otherwise>
+                                                    </c:choose>
+                                                    <br>
+                                                    SL: ${o.amount}
+                                                </small>
                                             </td>
                                             <td class="text-right">
                                                 <small><fmt:formatNumber value="${o.product.price * o.amount}" type="number" pattern="#,###"/> đ</small>

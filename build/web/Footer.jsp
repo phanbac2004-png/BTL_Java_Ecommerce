@@ -169,7 +169,6 @@
                     <h5>Liên kết</h5>
                     <a href="homepage">Trang chủ</a>
                     <a href="home">Cửa hàng</a>
-                    <a href="#">Về chúng tôi</a>
                     <a href="Contact.jsp">Liên hệ</a>
                 </div>
             </div>
@@ -177,10 +176,10 @@
             <div class="col-lg-3 col-md-6 mb-4">
                 <div class="footer-links">
                     <h5>Danh mục</h5>
-                    <a href="#">Áo thun trẻ em</a>
-                    <a href="#">Váy công chúa</a>
-                    <a href="#">Quần jeans</a>
-                    <a href="#">Phụ kiện</a>
+                    <a href="category?cid=1">Áo thun</a>
+                    <a href="category?cid=2">Đồ bộ</a>
+                    <a href="category?cid=3">Quần</a>
+                    <a href="category?cid=5">Phụ kiện</a>
                 </div>
             </div>
             

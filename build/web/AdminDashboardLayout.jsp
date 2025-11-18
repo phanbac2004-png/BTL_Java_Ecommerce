@@ -206,8 +206,6 @@
                 flex: 1;
             }
             
-            /* (CSS cho Title và Subtitle sẽ được style trong các trang con) */
-            
             /* Responsive (Giữ nguyên) */
             @media (max-width: 768px) {
                 .admin-sidebar {
@@ -280,7 +278,7 @@
                         </a>
                      </li>
                     <li>
-                        <a href="admindashboard?page=products">
+                        <a href="admindashboard?page=products" class="${param.page == 'products' ? 'active' : ''}">
                             <i class="fas fa-box"></i>
                              <span>Quản lý sản phẩm</span>
                         </a>
@@ -292,25 +290,25 @@
                         </a>
                      </li>
                     <li>
-                        <a href="adminorders">
+                        <a href="adminorders" class="${requestScope['javax.servlet.forward.servlet_path'] != null && requestScope['javax.servlet.forward.servlet_path'].contains('adminorders') ? 'active' : ''}">
                             <i class="fas fa-shopping-cart"></i>
                              <span>Đơn hàng</span>
                         </a>
                     </li>
                     <li>
-                        <a href="adminusers">
+                        <a href="adminusers" class="${requestScope['javax.servlet.forward.servlet_path'] != null && requestScope['javax.servlet.forward.servlet_path'].contains('adminusers') ? 'active' : ''}">
                              <i class="fas fa-users"></i>
                             <span>Khách hàng</span>
                         </a>
                      </li>
                     <li>
-                        <a href="adminsoldproducts">
+                        <a href="adminsoldproducts" class="${requestScope['javax.servlet.forward.servlet_path'] != null && requestScope['javax.servlet.forward.servlet_path'].contains('adminsoldproducts') ? 'active' : ''}">
                             <i class="fas fa-warehouse"></i>
                              <span>Tồn kho</span>
                         </a>
                     </li>
                     <li>
-                        <a href="adminrevenue">
+                        <a href="adminrevenue" class="${requestScope['javax.servlet.forward.servlet_path'] != null && requestScope['javax.servlet.forward.servlet_path'].contains('adminrevenue') ? 'active' : ''}">
                              <i class="fas fa-file-alt"></i>
                             <span>Báo cáo</span>
                         </a>
@@ -325,5 +323,32 @@
         
         <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.bundle.min.js"></script>
+        
+        <script>
+            // JavaScript để xử lý active state cho sidebar
+            $(document).ready(function() {
+                // Lấy URL hiện tại
+                const currentUrl = window.location.href;
+                
+                // Xác định trang hiện tại và thêm class active
+                $('.sidebar-menu a').each(function() {
+                    const linkUrl = $(this).attr('href');
+                    
+                    // Kiểm tra nếu URL hiện tại chứa linkUrl
+                    if (currentUrl.includes(linkUrl)) {
+                        // Xóa active class từ tất cả các mục
+                        $('.sidebar-menu a').removeClass('active');
+                        // Thêm active class cho mục hiện tại
+                        $(this).addClass('active');
+                    }
+                });
+                
+                // Xử lý đặc biệt cho trang dashboard mặc định
+                if (currentUrl.includes('admindashboard') && !currentUrl.includes('page=')) {
+                    $('.sidebar-menu a').removeClass('active');
+                    $('.sidebar-menu a[href="admindashboard"]').addClass('active');
+                }
+            });
+        </script>
     </body>
 </html>

@@ -139,16 +139,6 @@
     </head>
     <body>
         <div id="logreg-forms">
-            <c:if test="${not empty resetSuccess}">
-                <div class="alert alert-success" role="alert">
-                    ${resetSuccess}
-                </div>
-            </c:if>
-            <c:if test="${not empty resetError}">
-                <div class="alert alert-danger" role="alert">
-                    ${resetError}
-                </div>
-            </c:if>
             <form class="form-signin" action="login" method="post">
                 <h1 class="h3 mb-3 font-weight-normal" style="text-align: center"> Sign in</h1>
                 <c:if test="${not empty mess}">
@@ -171,13 +161,25 @@
                     <input name="remember" value="1" type="checkbox" class="form-check-input" id="exampleCheck1">
                     <label class="form-check-label" for="exampleCheck1">Remember me</label>
                 </div>
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <a href="#" id="forgot_pswd">Forgot password?</a>
-                </div>
 
                 <button class="btn btn-success btn-block" type="submit"><i class="fas fa-sign-in-alt"></i> Sign in</button>
                 <hr>
+                <a href="#" id="forgot_pswd" class="d-block text-center mb-3" style="color: #9b59b6; text-decoration: none;"><i class="fas fa-key"></i> Quên mật khẩu?</a>
                 <button class="btn btn-primary btn-block" type="button" id="btn-signup"><i class="fas fa-user-plus"></i> Sign up New Account</button>
+            </form>
+
+            <form action="forgotpassword" method="post" class="form-reset" id="forgotPasswordForm" style="display: none;">
+                <h1 class="h3 mb-3 font-weight-normal" style="text-align: center"> Quên mật khẩu</h1>
+                <c:if test="${not empty forgotMess}">
+                    <div class="alert alert-${forgotMessType != null ? forgotMessType : 'info'}" role="alert">
+                        ${forgotMess}
+                    </div>
+                </c:if>
+                <input name="username" type="text" id="forgot-username" class="form-control" placeholder="Tên đăng nhập" required="" autofocus="">
+                <input name="email" type="email" id="forgot-email" class="form-control" placeholder="Email đăng ký" required="">
+                
+                <button class="btn btn-success btn-block" type="submit"><i class="fas fa-paper-plane"></i> Gửi mật khẩu mới</button>
+                <a href="#" id="cancel_reset" class="d-block text-center mt-3"><i class="fas fa-angle-left"></i> Quay lại đăng nhập</a>
             </form>
 
             <form action="signup" method="post" class="form-signup" id="signupForm" style="display: none;">
@@ -206,21 +208,19 @@
             </form>
             <br>
 
-            <form action="forgot-password" method="post" class="form-reset" style="display: none;">
-                <h1 class="h3 mb-3 font-weight-normal" style="text-align: center">Forgot password</h1>
-                <p class="text-muted text-center">Nhập email đã đăng ký. Chúng tôi sẽ gửi mật khẩu tạm thời cho bạn.</p>
-                <input name="email" type="email" class="form-control" placeholder="Email" required value="${enteredEmail}">
-                <button class="btn btn-primary btn-block" type="submit"><i class="fas fa-paper-plane"></i> Gửi mật khẩu mới</button>
-                <a href="#" id="cancel_reset" class="d-block text-center mt-3"><i class="fas fa-angle-left"></i> Back</a>
-            </form>
         </div>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
         <script>
             function toggleResetPswd(e) {
                 e.preventDefault();
-                $('#logreg-forms .form-signin').toggle() // display:block or none
-                $('#logreg-forms .form-reset').toggle() // display:block or none
+                $('#logreg-forms .form-signin').toggle(); // display:block or none
+                $('#logreg-forms .form-reset').toggle(); // display:block or none
+                // Clear form when switching
+                if ($('#logreg-forms .form-reset').is(':visible')) {
+                    $('#forgotPasswordForm')[0].reset();
+                    $('.alert').remove();
+                }
             }
 
             function toggleSignUp(e) {
@@ -276,13 +276,5 @@
                 });
             })
         </script>
-        <c:if test="${showReset}">
-            <script>
-                $(function () {
-                    $('#logreg-forms .form-signin').hide();
-                    $('#logreg-forms .form-reset').show();
-                });
-            </script>
-        </c:if>
     </body>
 </html>

@@ -7,6 +7,8 @@ package control;
 import dao.DAO;
 import entity.Category;
 import entity.Product;
+import entity.Color;
+import entity.Size;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -48,13 +50,7 @@ public class SearchControl extends HttpServlet {
             page = 1;
         }
 
-        String color = request.getParameter("color");
-        String size = request.getParameter("size");
-        Double min = null, max = null;
-        try { String s = request.getParameter("min"); if (s != null && !s.isEmpty()) min = Double.parseDouble(s); } catch (Exception ignore) {}
-        try { String s = request.getParameter("max"); if (s != null && !s.isEmpty()) { double v = Double.parseDouble(s); max = (v <= 0) ? null : v; } } catch (Exception ignore) {}
-
-        int totalProducts = dao.getTotalProductsCountFiltered(null, txtSearch == null ? "" : txtSearch, color, size, min, max);
+        int totalProducts = dao.getTotalProductsCountBySearch(txtSearch == null ? "" : txtSearch);
         int totalPage = (int) Math.ceil((double) totalProducts / pageSize);
         if (totalPage <= 0) totalPage = 1;
         if (page < 1) page = 1;
@@ -62,13 +58,19 @@ public class SearchControl extends HttpServlet {
 
         int offset = (page - 1) * pageSize;
     String sort = request.getParameter("sort");
-    List<Product> list = dao.getProductsFiltered(null, txtSearch == null ? "" : txtSearch, color, size, min, max, offset, pageSize, sort);
+    List<Product> list = dao.searchByNamePaginatedSorted(txtSearch == null ? "" : txtSearch, offset, pageSize, sort);
         List<Category> listC = dao.getAllCategory();
         Product last = dao.getLast();
+
+        // colors and sizes for Left.jsp
+        List<Color> colors = dao.getAllColors();
+        List<Size> sizes = dao.getAllSizes();
 
         request.setAttribute("listP", list);
         request.setAttribute("p", last);
         request.setAttribute("listCC", listC);
+        request.setAttribute("colorsList", colors);
+        request.setAttribute("sizesList", sizes);
         request.setAttribute("txtS", txtSearch);
     request.setAttribute("sort", sort);
         request.setAttribute("page", page);

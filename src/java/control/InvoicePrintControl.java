@@ -5,6 +5,7 @@ import entity.Account;
 import entity.Order;
 import entity.OrderDetail;
 import entity.Product;
+import entity.ProductVariant;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,14 +50,30 @@ public class InvoicePrintControl extends HttpServlet {
                 }
 
                 List<Product> listProducts = new ArrayList<>();
+                List<ProductVariant> listVariants = new ArrayList<>();
                 for (OrderDetail od : listOD) {
                     Product p = dao.getProductByID(od.getProductID());
-                    if (p != null) listProducts.add(p);
-                    else listProducts.add(null);
+                    ProductVariant pv = null;
+                    if (p == null) {
+                        pv = dao.getVariantById(od.getProductID());
+                        if (pv != null) {
+                            String cName = dao.getColorNameById(pv.getColorId());
+                            String sName = dao.getSizeNameById(pv.getSizeId());
+                            try { pv.setColorName(cName); } catch (Exception ignore) {}
+                            try { pv.setSizeName(sName); } catch (Exception ignore) {}
+                            p = dao.getProductByID(pv.getProductId());
+                        }
+                    }
+                    if (p == null) {
+                        p = new Product(0, "Unknown product", request.getContextPath() + "/images/placeholder-80.svg", 0, "", "");
+                    }
+                    listProducts.add(p);
+                    listVariants.add(pv);
                 }
 
                 request.setAttribute("listOD", listOD);
                 request.setAttribute("listProducts", listProducts);
+                request.setAttribute("listVariants", listVariants);
                 request.setAttribute("orderID", orderID);
                 request.setAttribute("order", order);
 

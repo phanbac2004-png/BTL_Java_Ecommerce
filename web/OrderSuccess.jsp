@@ -1,5 +1,6 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html>
@@ -47,6 +48,19 @@
                 border-radius: 10px;
                 border: 1px solid #FCE4EC;
             }
+
+            /* Variant badges */
+            .variant-badge {
+                display: inline-block;
+                background: #FCE4EC;
+                color: #C2185B;
+                border-radius: 12px;
+                padding: 4px 8px;
+                font-weight: 700;
+                font-size: 0.9em;
+                margin-right: 6px;
+            }
+            .variant-badge--muted { background:#FFF0F6; color:#AD1457; font-weight:600; }
             
             /* Tiêu đề bảng */
             .thead-kid {
@@ -179,15 +193,37 @@
                                         <tr>
                                             <td><strong>${loop.index + 1}</strong></td>
                                             <td>
-                                                <img src="${listProducts[loop.index].image}" 
-                                                     alt="${listProducts[loop.index].name}" 
-                                                     class="product-image-kid" 
-                                                     onerror="this.src='https://via.placeholder.com/80'">
+                                                <c:choose>
+                                                    <c:when test="${not empty listProducts[loop.index].image and (fn:startsWith(listProducts[loop.index].image,'/') or fn:startsWith(listProducts[loop.index].image,'http'))}">
+                                                        <c:set var="imgUrl" value="${listProducts[loop.index].image}" />
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <c:set var="imgUrl" value="${pageContext.request.contextPath}/${listProducts[loop.index].image}" />
+                                                    </c:otherwise>
+                                                </c:choose>
+                                                <img src="${imgUrl}"
+                                                     alt="${listProducts[loop.index].name}"
+                                                     class="product-image-kid"
+                                                     onerror="this.onerror=null;this.src='${pageContext.request.contextPath}/images/placeholder-80.svg';">
                                             </td>
                                             <td>
                                                 <strong>${listProducts[loop.index].name}</strong>
                                                 <br>
-                                                <small class="text-muted">ID: ${listProducts[loop.index].id}</small>
+                                                <small class="text-muted">
+                                                    <c:choose>
+                                                        <c:when test="${not empty listVariants and not empty listVariants[loop.index]}">
+                                                            <c:if test="${not empty listVariants[loop.index].colorName}">
+                                                                <span class="variant-badge" title="Màu: ${listVariants[loop.index].colorName}">${listVariants[loop.index].colorName}</span>
+                                                            </c:if>
+                                                            <c:if test="${not empty listVariants[loop.index].sizeName}">
+                                                                <span class="variant-badge variant-badge--muted" title="Size: ${listVariants[loop.index].sizeName}">${listVariants[loop.index].sizeName}</span>
+                                                            </c:if>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            ID: ${listProducts[loop.index].id}
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </small>
                                             </td>
                                             <td>
                                                 <fmt:formatNumber value="${od.price}" type="number" pattern="#,###"/> đ

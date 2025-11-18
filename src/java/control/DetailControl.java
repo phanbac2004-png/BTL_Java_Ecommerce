@@ -7,6 +7,8 @@ package control;
 import dao.DAO;
 import entity.Category;
 import entity.Product;
+import entity.Color;
+import entity.Size;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -40,10 +42,19 @@ public class DetailControl extends HttpServlet {
         Product p = dao.getProductByID(id);
         List<Category> listC = dao.getAllCategory();
         Product last = dao.getLast();
+        // product variants for this product
+        List<entity.ProductVariant> variants = dao.getVariantsByProductId(id);
         
+        // provide colors and sizes for Left.jsp
+        List<Color> colors = dao.getAllColors();
+        List<Size> sizes = dao.getAllSizes();
+
         request.setAttribute("detail", p);
         request.setAttribute("listCC", listC);
         request.setAttribute("p", last);
+        request.setAttribute("colorsList", colors);
+        request.setAttribute("sizesList", sizes);
+        request.setAttribute("variantsList", variants);
         request.getRequestDispatcher("Detail.jsp").forward(request, response);
     }
 

@@ -545,7 +545,7 @@
             </a>
 
             <!-- Nút Cart -->
-            <a class="btn btn-kid-cart btn-sm" href="cart">
+            <a class="btn btn-kid-cart btn-sm" style="max-width:fit-content" href="cart">
                 <i class="fa fa-shopping-cart"></i> Cart
             </a>
         </div>

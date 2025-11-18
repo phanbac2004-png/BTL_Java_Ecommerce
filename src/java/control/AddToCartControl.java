@@ -30,6 +30,9 @@ public class AddToCartControl extends HttpServlet {
         }
         
         String pid = request.getParameter("pid");
+        String variantParam = request.getParameter("variant_id");
+        String colorParam = request.getParameter("color");
+        String sizeParam = request.getParameter("size");
         String qtyStr = request.getParameter("quantity");
         String amountStr = request.getParameter("amount");
         
@@ -49,10 +52,70 @@ public class AddToCartControl extends HttpServlet {
             }
         }
 
+        DAO dao = new DAO();
+
+        // If a variant id is provided, use variant-aware cart operations
+        if (variantParam != null && !variantParam.isEmpty()) {
+            try {
+                int variantId = Integer.parseInt(variantParam);
+                entity.ProductVariant pv = dao.getVariantById(variantId);
+                if (pv == null) {
+                    out.print("{\"success\":false,\"message\":\"Variant không tồn tại\"}");
+                    return;
+                }
+                int available = pv.getQuantity();
+                if (available <= 0) {
+                    out.print("{\"success\":false,\"message\":\"Variant đã hết hàng\"}");
+                    return;
+                }
+                int currentInCart = dao.getCartAmountByVariant(a.getId(), variantId);
+                if (currentInCart + amount > available) {
+                    out.print("{\"success\":false,\"message\":\"Số lượng thêm vượt quá kho. Kho hiện có: " + available + "\"}");
+                    return;
+                }
+                dao.addToCartVariant(a.getId(), variantId, amount);
+                out.print("{\"success\":true,\"message\":\"Đã thêm vào giỏ hàng thành công!\"}");
+                return;
+            } catch (NumberFormatException e) {
+                out.print("{\"success\":false,\"message\":\"Variant không hợp lệ\"}");
+                return;
+            }
+        }
+
+        // If color and size provided, try to find a matching variant
+        if (pid != null && colorParam != null && sizeParam != null && !colorParam.isEmpty() && !sizeParam.isEmpty()) {
+            try {
+                int productID = Integer.parseInt(pid);
+                int colorId = Integer.parseInt(colorParam);
+                int sizeId = Integer.parseInt(sizeParam);
+                entity.ProductVariant pv = dao.getVariantByProductColorSize(productID, colorId, sizeId);
+                if (pv == null) {
+                    out.print("{\"success\":false,\"message\":\"Không tìm thấy biến thể phù hợp\"}");
+                    return;
+                }
+                int available = pv.getQuantity();
+                if (available <= 0) {
+                    out.print("{\"success\":false,\"message\":\"Variant đã hết hàng\"}");
+                    return;
+                }
+                int currentInCart = dao.getCartAmountByVariant(a.getId(), pv.getVariantId());
+                if (currentInCart + amount > available) {
+                    out.print("{\"success\":false,\"message\":\"Số lượng thêm vượt quá kho. Kho hiện có: " + available + "\"}");
+                    return;
+                }
+                dao.addToCartVariant(a.getId(), pv.getVariantId(), amount);
+                out.print("{\"success\":true,\"message\":\"Đã thêm vào giỏ hàng thành công!\"}");
+                return;
+            } catch (NumberFormatException e) {
+                out.print("{\"success\":false,\"message\":\"Dữ liệu không hợp lệ\"}");
+                return;
+            }
+        }
+
+        // Fallback to product-based behavior for backward compatibility
         if (pid != null) {
             try {
                 int productID = Integer.parseInt(pid);
-                DAO dao = new DAO();
                 // validate stock
                 entity.Product prod = dao.getProductByID(productID);
                 if (prod == null) {
