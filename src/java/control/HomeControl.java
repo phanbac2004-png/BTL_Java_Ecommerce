@@ -39,7 +39,7 @@ public class HomeControl extends HttpServlet {
         // b1: get data from dao with pagination and filters
         DAO dao = new DAO();
         int page = 1;
-        int pageSize = 5;
+        int pageSize = 9;
 
         try {
             String pageParam = request.getParameter("page");

@@ -38,7 +38,7 @@ public class HomepageControl extends HttpServlet {
         // b1: get data from dao with pagination
         DAO dao = new DAO();
         int page = 1;
-        int pageSize = 5;
+        int pageSize = 9;
         try {
             String pageParam = request.getParameter("page");
             if (pageParam != null) {

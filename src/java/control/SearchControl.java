@@ -42,7 +42,7 @@ public class SearchControl extends HttpServlet {
         DAO dao = new DAO();
 
         int page = 1;
-        int pageSize = 5;
+        int pageSize = 9;
         try {
             String pageParam = request.getParameter("page");
             if (pageParam != null) page = Integer.parseInt(pageParam);
