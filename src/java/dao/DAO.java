@@ -15,6 +15,7 @@ import entity.Cart;
 import entity.Color;
 import entity.Size;
 import entity.ProductVariant;
+import util.PasswordUtil;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -429,22 +430,25 @@ public class DAO {
     }
     
     public Account login(String user, String pass) {
-        String query = "select * from account where user =? and pass =?";
+        String query = "select * from account where user =?";
         try {
             conn = new DBContext().getConnection();//mo ket noi voi sql
             ps = conn.prepareStatement(query);
             ps.setString(1, user);
-            ps.setString(2, pass);
             rs = ps.executeQuery();
             while(rs.next()) {
-                // id, user, pass, phone, email, isSell, isAdmin
-                return new Account(rs.getInt("id"),
-                        rs.getString("user"),
-                        rs.getString("pass"),
-                        rs.getString("phone") != null ? rs.getString("phone") : "",
-                        rs.getString("email") != null ? rs.getString("email") : "",
-                        rs.getInt("isSell"),
-                        rs.getInt("isAdmin"));
+                String hashedPassword = rs.getString("pass");
+                // Verify password using BCrypt
+                if (PasswordUtil.verifyPassword(pass, hashedPassword)) {
+                    // id, user, pass, phone, email, isSell, isAdmin
+                    return new Account(rs.getInt("id"),
+                            rs.getString("user"),
+                            rs.getString("pass"),
+                            rs.getString("phone") != null ? rs.getString("phone") : "",
+                            rs.getString("email") != null ? rs.getString("email") : "",
+                            rs.getInt("isSell"),
+                            rs.getInt("isAdmin"));
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -526,7 +530,8 @@ public class DAO {
             ps.setString(1, user);
             ps.setString(2, phone);
             ps.setString(3, email);
-            ps.setString(4, pass);
+            // Hash password before storing
+            ps.setString(4, PasswordUtil.hashPassword(pass));
             ps.executeUpdate();
         } catch (Exception e) {
             e.printStackTrace();
@@ -1452,75 +1457,6 @@ public double getRevenueBySelectedYear(int year, int month, int day) {
     }
     return 0;
 }
-//    public double getRevenueBySelectedWeek(int year, int month, int day) {
-//        // Tính từ đầu tuần của ngày được chọn đến ngày đó
-//        String query = "SELECT COALESCE(SUM(totalPrice), 0) FROM orders WHERE status != 'Cancelled' " +
-//                      "AND YEAR(orderDate) = ? " +
-//                      "AND WEEK(orderDate, 1) = WEEK(?, 1) " +
-//                      "AND DATE(orderDate) <= ?";
-//        try {
-//            conn = new DBContext().getConnection();
-//            ps = conn.prepareStatement(query);
-//            String selectedDate = String.format("%04d-%02d-%02d", year, month, day);
-//            ps.setInt(1, year);
-//            ps.setString(2, selectedDate);
-//            ps.setString(3, selectedDate);
-//            rs = ps.executeQuery();
-//            if (rs.next()) {
-//                double result = rs.getDouble(1);
-//                return rs.wasNull() ? 0 : result;
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        return 0;
-//    }
-//    
-//    public double getRevenueBySelectedMonth(int year, int month, int day) {
-//        // Tính từ đầu tháng của ngày được chọn đến ngày đó
-//        String query = "SELECT COALESCE(SUM(totalPrice), 0) FROM orders WHERE status != 'Cancelled' " +
-//                      "AND YEAR(orderDate) = ? " +
-//                      "AND MONTH(orderDate) = ? " +
-//                      "AND DATE(orderDate) <= ?";
-//        try {
-//            conn = new DBContext().getConnection();
-//            ps = conn.prepareStatement(query);
-//            String selectedDate = String.format("%04d-%02d-%02d", year, month, day);
-//            ps.setInt(1, year);
-//            ps.setInt(2, month);
-//            ps.setString(3, selectedDate);
-//            rs = ps.executeQuery();
-//            if (rs.next()) {
-//                double result = rs.getDouble(1);
-//                return rs.wasNull() ? 0 : result;
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        return 0;
-//    }
-//    
-//    public double getRevenueBySelectedYear(int year, int month, int day) {
-//        // Tính từ đầu năm của ngày được chọn đến ngày đó
-//        String query = "SELECT COALESCE(SUM(totalPrice), 0) FROM orders WHERE status != 'Cancelled' " +
-//                      "AND YEAR(orderDate) = ? " +
-//                      "AND DATE(orderDate) <= ?";
-//        try {
-//            conn = new DBContext().getConnection();
-//            ps = conn.prepareStatement(query);
-//            String selectedDate = String.format("%04d-%02d-%02d", year, month, day);
-//            ps.setInt(1, year);
-//            ps.setString(2, selectedDate);
-//            rs = ps.executeQuery();
-//            if (rs.next()) {
-//                double result = rs.getDouble(1);
-//                return rs.wasNull() ? 0 : result;
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        return 0;
-//    }
 //    
     // ========== USER MANAGEMENT (ADMIN) ==========
     public List<Account> getAllAccounts() {
@@ -1582,7 +1518,8 @@ public double getRevenueBySelectedYear(int year, int month, int day) {
             ps.setString(1, user);
             ps.setString(2, phone);
             ps.setString(3, email);
-            ps.setString(4, pass);
+            // Hash password before storing
+            ps.setString(4, PasswordUtil.hashPassword(pass));
             ps.setInt(5, isSell);
             ps.setInt(6, isAdmin);
             ps.executeUpdate();
@@ -1634,7 +1571,8 @@ public double getRevenueBySelectedYear(int year, int month, int day) {
         try {
             conn = new DBContext().getConnection();
             ps = conn.prepareStatement(query);
-            ps.setString(1, newPassword);
+            // Hash password before storing
+            ps.setString(1, PasswordUtil.hashPassword(newPassword));
             ps.setString(2, username);
             ps.executeUpdate();
         } catch (Exception e) {
@@ -1647,7 +1585,8 @@ public double getRevenueBySelectedYear(int year, int month, int day) {
         try {
             conn = new DBContext().getConnection();
             ps = conn.prepareStatement(query);
-            ps.setString(1, newPassword);
+            // Hash password before storing
+            ps.setString(1, PasswordUtil.hashPassword(newPassword));
             ps.setInt(2, accountId);
             ps.executeUpdate();
         } catch (Exception e) {
@@ -1699,6 +1638,32 @@ public double getRevenueBySelectedYear(int year, int month, int day) {
             return deliveredCount;
         }
     }
+
+    // New: Variant-level sold product info (product + size + color)
+    public static class SoldVariantInfo {
+        private Product product;
+        private int variantId;
+        private String sizeName;
+        private String colorName;
+        private int totalSold;
+        private double totalRevenue;
+
+        public SoldVariantInfo(Product product, int variantId, String sizeName, String colorName, int totalSold, double totalRevenue) {
+            this.product = product;
+            this.variantId = variantId;
+            this.sizeName = sizeName;
+            this.colorName = colorName;
+            this.totalSold = totalSold;
+            this.totalRevenue = totalRevenue;
+        }
+
+        public Product getProduct() { return product; }
+        public int getVariantId() { return variantId; }
+        public String getSizeName() { return sizeName; }
+        public String getColorName() { return colorName; }
+        public int getTotalSold() { return totalSold; }
+        public double getTotalRevenue() { return totalRevenue; }
+    }
     
     public List<SoldProductInfo> getSoldProducts() {
         List<SoldProductInfo> list = new ArrayList<>();
@@ -1731,6 +1696,118 @@ public double getRevenueBySelectedYear(int year, int month, int day) {
                 double totalRevenue = rs.getDouble("totalRevenue");
                 
                 list.add(new SoldProductInfo(product, totalSold, totalRevenue));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    // Variant-level breakdown: each row is a unique product + size + color
+    public List<SoldVariantInfo> getSoldProductVariants() {
+        List<SoldVariantInfo> list = new ArrayList<>();
+        String query = "SELECT p.id, p.name, p.image, p.price, p.title, p.description, p.cateID, "
+                     + "pv.variant_id, si.size_name, co.color_name, "
+                     + "SUM(od.amount) AS totalSold, SUM(od.amount * od.price) AS totalRevenue "
+                     + "FROM orderdetails od "
+                     + "JOIN orders o ON od.orderID = o.id "
+                     + "JOIN product_variants pv ON od.variant_id = pv.variant_id "
+                     + "JOIN product p ON pv.product_id = p.id "
+                     + "LEFT JOIN size si ON pv.size_id = si.size_id "
+                     + "LEFT JOIN color co ON pv.color_id = co.color_id "
+                     + "WHERE o.status != 'Cancelled' AND od.variant_id IS NOT NULL "
+                     + "GROUP BY p.id, p.name, p.image, p.price, p.title, p.description, p.cateID, pv.variant_id, si.size_name, co.color_name "
+                     + "ORDER BY totalSold DESC";
+        try {
+            conn = new DBContext().getConnection();
+            ps = conn.prepareStatement(query);
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                Product product = new Product(
+                    rs.getInt("id"),
+                    rs.getString("name"),
+                    rs.getString("image"),
+                    rs.getLong("price"),
+                    rs.getString("title"),
+                    rs.getString("description"),
+                    rs.getInt("cateID")
+                );
+                int variantId = rs.getInt("variant_id");
+                String sizeName = rs.getString("size_name");
+                String colorName = rs.getString("color_name");
+                int totalSold = rs.getInt("totalSold");
+                double totalRevenue = rs.getDouble("totalRevenue");
+                list.add(new SoldVariantInfo(product, variantId, sizeName, colorName, totalSold, totalRevenue));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    // Variant-level best sellers within a date range
+    public List<SoldVariantInfo> getSoldProductVariantsByRange(String range) {
+        List<SoldVariantInfo> list = new ArrayList<>();
+        StringBuilder sb = new StringBuilder();
+        sb.append("SELECT p.id, p.name, p.image, p.price, p.title, p.description, p.cateID, ")
+          .append("pv.variant_id, si.size_name, co.color_name, ")
+          .append("SUM(od.amount) AS totalSold, SUM(od.amount * od.price) AS totalRevenue ")
+          .append("FROM orderdetails od ")
+          .append("JOIN orders o ON od.orderID = o.id ")
+          .append("JOIN product_variants pv ON od.variant_id = pv.variant_id ")
+          .append("JOIN product p ON pv.product_id = p.id ")
+          .append("LEFT JOIN size si ON pv.size_id = si.size_id ")
+          .append("LEFT JOIN color co ON pv.color_id = co.color_id ")
+          .append("WHERE o.status != 'Cancelled' AND od.variant_id IS NOT NULL ");
+
+        // Apply date range filter based on orders.orderDate
+        if (range != null) {
+            switch (range) {
+                case "today":
+                    sb.append(" AND DATE(o.orderDate) = CURDATE() ");
+                    break;
+                case "yesterday":
+                    sb.append(" AND DATE(o.orderDate) = DATE_SUB(CURDATE(), INTERVAL 1 DAY) ");
+                    break;
+                case "last7":
+                    sb.append(" AND DATE(o.orderDate) >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) ");
+                    break;
+                case "thisMonth":
+                    sb.append(" AND YEAR(o.orderDate) = YEAR(CURDATE()) AND MONTH(o.orderDate) = MONTH(CURDATE()) ");
+                    break;
+                case "lastMonth":
+                    sb.append(" AND YEAR(o.orderDate) = YEAR(DATE_SUB(CURDATE(), INTERVAL 1 MONTH)) ")
+                      .append(" AND MONTH(o.orderDate) = MONTH(DATE_SUB(CURDATE(), INTERVAL 1 MONTH)) ");
+                    break;
+                default:
+                    // no extra filter
+                    break;
+            }
+        }
+
+        sb.append(" GROUP BY p.id, p.name, p.image, p.price, p.title, p.description, p.cateID, pv.variant_id, si.size_name, co.color_name ")
+          .append(" ORDER BY totalSold DESC");
+
+        try {
+            conn = new DBContext().getConnection();
+            ps = conn.prepareStatement(sb.toString());
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                Product product = new Product(
+                    rs.getInt("id"),
+                    rs.getString("name"),
+                    rs.getString("image"),
+                    rs.getLong("price"),
+                    rs.getString("title"),
+                    rs.getString("description"),
+                    rs.getInt("cateID")
+                );
+                int variantId = rs.getInt("variant_id");
+                String sizeName = rs.getString("size_name");
+                String colorName = rs.getString("color_name");
+                int totalSold = rs.getInt("totalSold");
+                double totalRevenue = rs.getDouble("totalRevenue");
+                list.add(new SoldVariantInfo(product, variantId, sizeName, colorName, totalSold, totalRevenue));
             }
         } catch (Exception e) {
             e.printStackTrace();

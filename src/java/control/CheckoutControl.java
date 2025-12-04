@@ -12,36 +12,36 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-@WebServlet(name = "CheckoutControl", urlPatterns = {"/checkout", "/buy"})
+@WebServlet(name = "CheckoutControl", urlPatterns = { "/checkout", "/buy" })
 public class CheckoutControl extends HttpServlet {
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         request.setCharacterEncoding("UTF-8");
-        
+
         HttpSession session = request.getSession();
         Account a = (Account) session.getAttribute("acc");
-        
+
         if (a == null) {
             response.sendRedirect("Login.jsp");
             return;
         }
-        
+
         DAO dao = new DAO();
         List<Cart> list = dao.getCartByAccountID(a.getId());
-        
+
         if (list.isEmpty()) {
             response.sendRedirect("cart");
             return;
         }
-        
+
         // Tính tổng tiền
         long totalPrice = 0;
         for (Cart c : list) {
             totalPrice += c.getTotalPrice();
         }
-        
+
         // Nếu là GET request, hiển thị form nhập thông tin
         if ("GET".equals(request.getMethod())) {
             request.setAttribute("list", list);
@@ -49,14 +49,14 @@ public class CheckoutControl extends HttpServlet {
             request.getRequestDispatcher("Checkout.jsp").forward(request, response);
             return;
         }
-        
+
         // Nếu là POST request, xử lý đặt hàng
         String phone = request.getParameter("phone");
         String address = request.getParameter("address");
         String paymentMethod = request.getParameter("paymentMethod");
-        
-        if (phone == null || phone.trim().isEmpty() || 
-            address == null || address.trim().isEmpty()) {
+
+        if (phone == null || phone.trim().isEmpty() ||
+                address == null || address.trim().isEmpty()) {
             // Thiếu thông tin, quay lại form
             request.setAttribute("list", list);
             request.setAttribute("total", totalPrice);
@@ -64,11 +64,11 @@ public class CheckoutControl extends HttpServlet {
             request.getRequestDispatcher("Checkout.jsp").forward(request, response);
             return;
         }
-        
+
         if (paymentMethod == null || paymentMethod.trim().isEmpty()) {
             paymentMethod = "cod"; // Mặc định là COD
         }
-        
+
         // Tạo đơn hàng với thông tin giao hàng - Phân biệt theo phương thức thanh toán
         String orderStatus;
         if ("vnpay".equals(paymentMethod)) {
@@ -79,7 +79,7 @@ public class CheckoutControl extends HttpServlet {
             orderStatus = "Processing";
         }
         int orderID = dao.createOrder(a.getId(), phone.trim(), address.trim(), totalPrice, orderStatus, paymentMethod);
-        
+
         if (orderID > 0) {
             // First: verify stock for all items (variant-aware)
             for (Cart c : list) {
@@ -87,7 +87,8 @@ public class CheckoutControl extends HttpServlet {
                     int available = c.getVariant().getQuantity();
                     if (available < c.getAmount()) {
                         HttpSession s = request.getSession();
-                        s.setAttribute("errorMessage", "Không thể đặt hàng vì một hoặc nhiều sản phẩm không đủ số lượng trong kho.");
+                        s.setAttribute("errorMessage",
+                                "Không thể đặt hàng vì một hoặc nhiều sản phẩm không đủ số lượng trong kho.");
                         response.sendRedirect("cart");
                         return;
                     }
@@ -95,25 +96,29 @@ public class CheckoutControl extends HttpServlet {
                     entity.Product p = dao.getProductByID(c.getProduct().getId());
                     if (p == null || p.getQuantity() < c.getAmount()) {
                         HttpSession s = request.getSession();
-                        s.setAttribute("errorMessage", "Không thể đặt hàng vì một hoặc nhiều sản phẩm không đủ số lượng trong kho.");
+                        s.setAttribute("errorMessage",
+                                "Không thể đặt hàng vì một hoặc nhiều sản phẩm không đủ số lượng trong kho.");
                         response.sendRedirect("cart");
                         return;
                     }
                 }
             }
 
-            // Second: decrement stock for all items (best-effort; consider DB transaction for production)
+            // Second: decrement stock for all items (best-effort; consider DB transaction
+            // for production)
             for (Cart c : list) {
                 if (c.getVariant() != null) {
                     int variantId = c.getVariant().getVariantId();
                     int newQty = c.getVariant().getQuantity() - c.getAmount();
-                    if (newQty < 0) newQty = 0;
+                    if (newQty < 0)
+                        newQty = 0;
                     dao.updateVariantQuantity(variantId, newQty);
                 } else {
                     int pid = c.getProduct().getId();
                     entity.Product p = dao.getProductByID(pid);
                     int newQty = p.getQuantity() - c.getAmount();
-                    if (newQty < 0) newQty = 0;
+                    if (newQty < 0)
+                        newQty = 0;
                     dao.updateQuantity(pid, newQty);
                 }
             }
@@ -121,7 +126,8 @@ public class CheckoutControl extends HttpServlet {
             // Create order details (variant-aware)
             for (Cart c : list) {
                 if (c.getVariant() != null) {
-                    dao.createOrderDetailVariant(orderID, c.getVariant().getVariantId(), c.getAmount(), c.getProduct().getPrice());
+                    dao.createOrderDetailVariant(orderID, c.getVariant().getVariantId(), c.getAmount(),
+                            c.getProduct().getPrice());
                 } else {
                     // legacy: write order detail with NULL variant_id
                     dao.createOrderDetail(orderID, c.getProduct().getId(), c.getAmount(), c.getProduct().getPrice());
@@ -156,4 +162,3 @@ public class CheckoutControl extends HttpServlet {
         processRequest(request, response);
     }
 }
-

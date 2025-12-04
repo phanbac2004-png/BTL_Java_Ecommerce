@@ -4,8 +4,8 @@
  */
 package control;
 
-import dao.DAO;
 import entity.Account;
+import service.AccountService;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -75,10 +75,10 @@ public class ChangePasswordControl extends HttpServlet {
             return;
         }
         
-        DAO dao = new DAO();
+        AccountService accountService = new AccountService();
         
         // Kiểm tra mật khẩu hiện tại có đúng không
-        Account checkAccount = dao.login(account.getUser(), currentPassword);
+        Account checkAccount = accountService.login(account.getUser(), currentPassword);
         if (checkAccount == null) {
             session.setAttribute("changePasswordMess", "Mật khẩu hiện tại không đúng");
             session.setAttribute("changePasswordMessType", "danger");
@@ -87,14 +87,13 @@ public class ChangePasswordControl extends HttpServlet {
         }
         
         // Cập nhật mật khẩu mới
-        dao.updatePasswordById(account.getId(), newPassword);
+        accountService.changePasswordById(account.getId(), newPassword);
         
         // Xóa flag yêu cầu đổi mật khẩu
         session.removeAttribute("requirePasswordChange");
         
-        // Cập nhật account trong session với mật khẩu mới
-        account.setPass(newPassword);
-        session.setAttribute("acc", account);
+        // No need to update account password in session since it's now hashed
+        // The hashed password is already updated in the database
         
         session.setAttribute("changePasswordMess", "Đổi mật khẩu thành công!");
         session.setAttribute("changePasswordMessType", "success");

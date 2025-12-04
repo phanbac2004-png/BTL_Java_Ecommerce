@@ -4,8 +4,8 @@
  */
 package control;
 
-import dao.DAO;
 import entity.Account;
+import service.AccountService;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -71,10 +71,10 @@ public class SignUpControl extends HttpServlet {
             return;
         }
         
-        DAO dao = new DAO();
+        AccountService accountService = new AccountService();
         
         // Kiểm tra tên người dùng đã tồn tại
-        Account a = dao.checkAccountExist(user);
+        Account a = accountService.checkAccountExist(user);
         if (a != null) {
             request.setAttribute("thongbao", "Tên người dùng đã tồn tại!");
             request.setAttribute("username", user);
@@ -83,7 +83,7 @@ public class SignUpControl extends HttpServlet {
         }
         
         // Kiểm tra email đã tồn tại
-        Account emailAccount = dao.checkEmailExist(email);
+        Account emailAccount = accountService.checkEmailExist(email);
         if (emailAccount != null) {
             request.setAttribute("thongbao", "Email này đã được sử dụng!");
             request.setAttribute("username", user);
@@ -92,7 +92,7 @@ public class SignUpControl extends HttpServlet {
         }
         
         // Kiểm tra số điện thoại đã tồn tại
-        Account phoneAccount = dao.checkPhoneExist(phone);
+        Account phoneAccount = accountService.checkPhoneExist(phone);
         if (phoneAccount != null) {
             request.setAttribute("thongbao", "Số điện thoại này đã được sử dụng!");
             request.setAttribute("username", user);
@@ -101,7 +101,7 @@ public class SignUpControl extends HttpServlet {
         }
         
         // Tất cả đều hợp lệ, tạo tài khoản
-        dao.signup(user, phone, email, pass);
+        accountService.signup(user, phone, email, pass);
         response.sendRedirect("home");
     }
 

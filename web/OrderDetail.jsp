@@ -157,14 +157,9 @@
                                 </p>
                                 <p><strong>Phương thức thanh toán:</strong>
                                     <c:choose>
-                                        <c:when test="${order.status == 'Completed'}">
+                                        <c:when test="${order.paymentMethod == 'vnpay'}">
                                             <span class="badge badge-kid-success">
                                                 <i class="fas fa-credit-card"></i> Đã chuyển khoản (VNPay)
-                                            </span>
-                                        </c:when>
-                                        <c:when test="${order.status == 'Delivered'}">
-                                            <span class="badge badge-kid-processing">
-                                                <i class="fas fa-hand-holding-usd"></i> Thanh toán khi nhận hàng (COD)
                                             </span>
                                         </c:when>
                                         <c:otherwise>
@@ -190,8 +185,6 @@
                             <tr>
                                 <th>Hình ảnh</th>
                                 <th>Tên sản phẩm</th>
-                                <th>Size</th>
-                                <th>Màu sắc</th>
                                 <th>Số lượng</th>
                                 <th>Đơn giá</th>
                                 <th>Thành tiền</th>
@@ -212,22 +205,22 @@
                                             </c:choose>
                                             <img src="${imgUrl}" width="80" height="80" class="img-thumbnail" onerror="this.onerror=null;this.src='${pageContext.request.contextPath}/images/placeholder-80.svg';">
                                         </td>
-                                        <td>${listProducts[loop.index].name}</td>
                                         <td>
-                                            <c:choose>
-                                                <c:when test="${not empty listVariants and not empty listVariants[loop.index] and not empty listVariants[loop.index].sizeName}">
-                                                    <span class="variant-badge variant-badge--muted" title="Size: ${listVariants[loop.index].sizeName}">${listVariants[loop.index].sizeName}</span>
-                                                </c:when>
-                                                <c:otherwise>-</c:otherwise>
-                                            </c:choose>
-                                        </td>
-                                        <td>
-                                            <c:choose>
-                                                <c:when test="${not empty listVariants and not empty listVariants[loop.index] and not empty listVariants[loop.index].colorName}">
-                                                    <span class="variant-badge" title="Màu: ${listVariants[loop.index].colorName}">${listVariants[loop.index].colorName}</span>
-                                                </c:when>
-                                                <c:otherwise>-</c:otherwise>
-                                            </c:choose>
+                                            <strong>${listProducts[loop.index].name}</strong>
+                                            <br>
+                                            <small class="text-muted">
+                                                <c:choose>
+                                                    <c:when test="${not empty listVariants and not empty listVariants[loop.index]}">
+                                                        <c:if test="${not empty listVariants[loop.index].colorName}">
+                                                            <span class="variant-badge" title="Màu: ${listVariants[loop.index].colorName}">${listVariants[loop.index].colorName}</span>
+                                                        </c:if>
+                                                        <c:if test="${not empty listVariants[loop.index].sizeName}">
+                                                            <span class="variant-badge variant-badge--muted" title="Size: ${listVariants[loop.index].sizeName}">${listVariants[loop.index].sizeName}</span>
+                                                        </c:if>
+                                                    </c:when>
+                                                    <c:otherwise>ID: ${listProducts[loop.index].id}</c:otherwise>
+                                                </c:choose>
+                                            </small>
                                         </td>
                                         <td>${od.amount}</td>
                                         <td><fmt:formatNumber value="${od.price}" type="number" pattern="#,###"/> đ</td>
@@ -239,9 +232,13 @@
                                 <!-- Hiển thị dữ liệu mẫu khi không có dữ liệu thật -->
                                 <tr>
                                     <td><img src="${pageContext.request.contextPath}/images/placeholder-80.svg" width="80" height="80" class="img-thumbnail" onerror="this.onerror=null;this.src='${pageContext.request.contextPath}/images/placeholder-80.svg';"></td>
-                                    <td>Áo thun Kiddy mẫu</td>
-                                    <td>-</td>
-                                    <td>-</td>
+                                    <td>
+                                        <strong>Áo thun Kiddy mẫu</strong><br>
+                                        <small class="text-muted">
+                                            <span class="variant-badge">Màu mẫu</span>
+                                            <span class="variant-badge variant-badge--muted">Size mẫu</span>
+                                        </small>
+                                    </td>
                                     <td>2</td>
                                     <td>120,000 đ</td>
                                     <td>240,000 đ</td>
@@ -251,7 +248,7 @@
                         <c:if test="${order != null}">
                             <tfoot>
                                 <tr class="table-kid-footer">
-                                    <td colspan="6" class="text-right"><strong>Tổng cộng:</strong></td>
+                                    <td colspan="4" class="text-right"><strong>Tổng cộng:</strong></td>
                                     <td><strong><fmt:formatNumber value="${order.totalPrice}" type="number" pattern="#,###"/> đ</strong></td>
                                 </tr>
                             </tfoot>

@@ -4,8 +4,8 @@
  */
 package control;
 
-import dao.DAO;
 import entity.Account;
+import service.AccountService;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -37,8 +37,8 @@ public class LoginControl extends HttpServlet {
         String username = request.getParameter("user");
         String password = request.getParameter("pass");
         
-        DAO dao = new DAO();
-        Account a = dao.login(username, password);
+        AccountService accountService = new AccountService();
+        Account a = accountService.login(username, password);
         if (a == null) {
             request.setAttribute("mess", "Wrong user or pass");
             request.getRequestDispatcher("Login.jsp").forward(request, response);
@@ -48,24 +48,8 @@ public class LoginControl extends HttpServlet {
             session.setAttribute("acc", a);
             session.setMaxInactiveInterval(1000);
             
-            // Kiểm tra nếu mật khẩu là mật khẩu tạm (8 ký tự, chỉ chữ và số)
-            // Mật khẩu tạm được tạo bởi ForgotPasswordControl có 8 ký tự alphanumeric
-            if (isTemporaryPassword(password)) {
-                session.setAttribute("requirePasswordChange", true);
-                request.setAttribute("requirePasswordChange", true);
-            }
-            
             request.getRequestDispatcher("home").forward(request, response);
         }
-    }
-    
-    private boolean isTemporaryPassword(String password) {
-        // Mật khẩu tạm có 8 ký tự và chỉ chứa chữ cái và số
-        if (password == null || password.length() != 8) {
-            return false;
-        }
-        // Kiểm tra xem có phải chỉ chứa chữ cái và số không
-        return password.matches("^[A-Za-z0-9]{8}$");
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

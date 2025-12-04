@@ -1,7 +1,7 @@
 package control;
 
 import dao.DAO;
-import dao.DAO.SoldProductInfo;
+// Removed SoldProductInfo import; using variant-level SoldVariantInfo instead.
 import entity.Account;
 import java.io.IOException;
 import java.util.List;
@@ -31,9 +31,15 @@ public class AdminSoldProductsControl extends HttpServlet {
         }
         
         DAO dao = new DAO();
-        List<SoldProductInfo> list = dao.getSoldProducts();
-        
+        // Date range filter: today, yesterday, last7, thisMonth, lastMonth
+        String range = request.getParameter("range");
+        if (range == null || range.isEmpty()) {
+            range = "last7"; // default to last 7 days
+        }
+
+        List<DAO.SoldVariantInfo> list = dao.getSoldProductVariantsByRange(range);
         request.setAttribute("list", list);
+        request.setAttribute("range", range);
         request.setAttribute("contentPage", "AdminSoldProductsContent.jsp");
         request.getRequestDispatcher("AdminDashboardLayout.jsp").forward(request, response);
     }

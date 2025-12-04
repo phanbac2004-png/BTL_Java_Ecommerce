@@ -21,17 +21,17 @@ import jakarta.servlet.http.HttpServletResponse;
  *
  * @author trinh
  */
-@WebServlet(name = "HomeControl", urlPatterns = {"/home"})
+@WebServlet(name = "HomeControl", urlPatterns = { "/home" })
 public class HomeControl extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
      *
-     * @param request servlet request
+     * @param request  servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     * @throws IOException      if an I/O error occurs
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -63,21 +63,45 @@ public class HomeControl extends HttpServlet {
         Integer cid = null;
         double minPrice = 0;
         double maxPrice = 1000000;
-        try { if (colorParam != null && !colorParam.isEmpty()) colorId = Integer.parseInt(colorParam); } catch (Exception ignore) {}
-        try { if (sizeParam != null && !sizeParam.isEmpty()) sizeId = Integer.parseInt(sizeParam); } catch (Exception ignore) {}
-        try { if (cidParam != null && !cidParam.isEmpty()) cid = Integer.parseInt(cidParam); } catch (Exception ignore) {}
-        try { if (minParam != null && !minParam.isEmpty()) minPrice = Double.parseDouble(minParam); } catch (Exception ignore) {}
-        try { if (maxParam != null && !maxParam.isEmpty()) maxPrice = Double.parseDouble(maxParam); } catch (Exception ignore) {}
+        try {
+            if (colorParam != null && !colorParam.isEmpty())
+                colorId = Integer.parseInt(colorParam);
+        } catch (Exception ignore) {
+        }
+        try {
+            if (sizeParam != null && !sizeParam.isEmpty())
+                sizeId = Integer.parseInt(sizeParam);
+        } catch (Exception ignore) {
+        }
+        try {
+            if (cidParam != null && !cidParam.isEmpty())
+                cid = Integer.parseInt(cidParam);
+        } catch (Exception ignore) {
+        }
+        try {
+            if (minParam != null && !minParam.isEmpty())
+                minPrice = Double.parseDouble(minParam);
+        } catch (Exception ignore) {
+        }
+        try {
+            if (maxParam != null && !maxParam.isEmpty())
+                maxPrice = Double.parseDouble(maxParam);
+        } catch (Exception ignore) {
+        }
 
         int totalProducts = dao.getTotalProductsCountFiltered(colorId, sizeId, minPrice, maxPrice, cid, txtParam);
         int totalPage = (int) Math.ceil((double) totalProducts / pageSize);
-        if (totalPage <= 0) totalPage = 1;
-        if (page < 1) page = 1;
-        if (page > totalPage) page = totalPage;
+        if (totalPage <= 0)
+            totalPage = 1;
+        if (page < 1)
+            page = 1;
+        if (page > totalPage)
+            page = totalPage;
 
         int offset = (page - 1) * pageSize;
         String sort = request.getParameter("sort");
-        List<Product> list = dao.getProductsByFilter(offset, pageSize, sort, colorId, sizeId, minPrice, maxPrice, cid, txtParam);
+        List<Product> list = dao.getProductsByFilter(offset, pageSize, sort, colorId, sizeId, minPrice, maxPrice, cid,
+                txtParam);
         List<Category> listC = dao.getAllCategory();
         // Fetch colors and sizes for Left.jsp filter
         List<entity.Color> colors = dao.getAllColors();
@@ -102,18 +126,19 @@ public class HomeControl extends HttpServlet {
         request.setAttribute("filterTxt", txtParam);
         request.setAttribute("url", "home");
         request.getRequestDispatcher("Home.jsp").forward(request, response);
-        //404 -> url
-        //500 -> jsp properties
+        // 404 -> url
+        // 500 -> jsp properties
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
+    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the
+    // + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.
      *
-     * @param request servlet request
+     * @param request  servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     * @throws IOException      if an I/O error occurs
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -124,10 +149,10 @@ public class HomeControl extends HttpServlet {
     /**
      * Handles the HTTP <code>POST</code> method.
      *
-     * @param request servlet request
+     * @param request  servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     * @throws IOException      if an I/O error occurs
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)

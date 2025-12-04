@@ -19,7 +19,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-
+    <link href="css/style.css" rel="stylesheet" type="text/css"/>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Fredoka+One&display=swap" rel="stylesheet">
 
@@ -686,57 +686,7 @@
     </section>
 
     <!-- FOOTER -->
-    <footer class="custom-footer">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="footer-logo">
-                        <i class="fas fa-crown me-2"></i>KIDDY
-                    </div>
-                    <p>KIDDY - Thương hiệu thời trang trẻ em cao cấp, mang đến những sản phẩm chất lượng nhất cho các thiên thần nhỏ.</p>
-                    <div class="social-links">
-                        <a href="#"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#"><i class="fab fa-instagram"></i></a>
-                        <a href="#"><i class="fab fa-tiktok"></i></a>
-                        <a href="#"><i class="fab fa-youtube"></i></a>
-                    </div>
-                </div>
-                
-                <div class="col-lg-2 col-md-6 mb-4">
-                    <div class="footer-links">
-                        <h5>Liên kết</h5>
-                        <a href="homepage">Trang chủ</a>
-                        <a href="home">Cửa hàng</a>
-                        <a href="#">Về chúng tôi</a>
-                        <a href="#">Liên hệ</a>
-                    </div>
-                </div>
-                
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <div class="footer-links">
-                        <h5>Danh mục</h5>
-                        <a href="#">Áo thun trẻ em</a>
-                        <a href="#">Váy công chúa</a>
-                        <a href="#">Quần jeans</a>
-                        <a href="#">Phụ kiện</a>
-                    </div>
-                </div>
-                
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <div class="footer-links">
-                        <h5>Thông tin</h5>
-                        <p><i class="fas fa-map-marker-alt me-2"></i> 123 Đường ABC, Hà Nội</p>
-                        <p><i class="fas fa-phone me-2"></i> 0123.456.789</p>
-                        <p><i class="fas fa-envelope me-2"></i> info@kiddy.com</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="footer-bottom">
-                <p>&copy; 2025 KIDDY | Designed with <i class="fas fa-heart" style="color: #ff4757;"></i> by Team UNETI</p>
-            </div>
-        </div>
-    </footer>
+    <jsp:include page="Footer.jsp"></jsp:include>
 
     <script>
         // Cart functionality: bind only product add buttons, require login for server-side add

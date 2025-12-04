@@ -304,7 +304,7 @@
                     <li>
                         <a href="adminsoldproducts" class="${requestScope['javax.servlet.forward.servlet_path'] != null && requestScope['javax.servlet.forward.servlet_path'].contains('adminsoldproducts') ? 'active' : ''}">
                             <i class="fas fa-warehouse"></i>
-                             <span>Tồn kho</span>
+                             <span>Danh sách sản phẩm đã bán</span>
                         </a>
                     </li>
                     <li>

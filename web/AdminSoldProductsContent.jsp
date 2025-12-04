@@ -72,7 +72,7 @@
 </style>
 <div class="page-title">
     <i class="fas fa-warehouse"></i>
-    <span>Danh sách sản phẩm đã bán</span>
+    <span>Hàng bán chạy</span>
 </div>
 
 <c:if test="${empty list}">
@@ -83,6 +83,16 @@
 
 <c:if test="${not empty list}">
     <div class="content-card">
+       
+         <div class="mb-3">
+            <div class="btn-group" role="group" aria-label="Date range filters">
+                <a href="adminsoldproducts?range=today" class="btn ${range == 'today' ? 'btn-primary' : 'btn-outline-primary'}">Hôm nay</a>
+                <a href="adminsoldproducts?range=yesterday" class="btn ${range == 'yesterday' ? 'btn-primary' : 'btn-outline-primary'}">Hôm qua</a>
+                <a href="adminsoldproducts?range=last7" class="btn ${range == 'last7' ? 'btn-primary' : 'btn-outline-primary'}">7 ngày trước</a>
+                <a href="adminsoldproducts?range=thisMonth" class="btn ${range == 'thisMonth' ? 'btn-primary' : 'btn-outline-primary'}">Tháng này</a>
+                <a href="adminsoldproducts?range=lastMonth" class="btn ${range == 'lastMonth' ? 'btn-primary' : 'btn-outline-primary'}">Tháng trước</a>
+            </div>
+        </div> 
         <div class="table-responsive">
             <table class="table table-striped table-hover">
                 <thead class="thead-kid">
@@ -110,8 +120,8 @@
                                 <br>
                                 <small class="text-muted">ID: ${item.product.id}</small>
                             </td>
-                            <td>-</td>
-                            <td>-</td>
+                            <td>${item.sizeName != null ? item.sizeName : '-'}</td>
+                            <td>${item.colorName != null ? item.colorName : '-'}</td>
                             <td>
                                 <fmt:formatNumber value="${item.product.price}" 
                                                   type="number" 

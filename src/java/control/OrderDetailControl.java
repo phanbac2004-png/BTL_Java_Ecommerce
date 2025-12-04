@@ -5,6 +5,7 @@ import entity.Account;
 import entity.Order;
 import entity.OrderDetail;
 import entity.Product;
+import entity.ProductVariant;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,29 +37,41 @@ public class OrderDetailControl extends HttpServlet {
             try {
                 int orderID = Integer.parseInt(oid);
                 DAO dao = new DAO();
+                // Lấy chi tiết đơn hàng
                 List<OrderDetail> listOD = dao.getOrderDetailsByOrderID(orderID);
                 
-                // Lấy thông tin đơn hàng để có status
-                List<Order> allOrders = dao.getAllOrders();
-                Order order = null;
-                for (Order o : allOrders) {
-                    if (o.getId() == orderID) {
-                        order = o;
-                        break;
-                    }
-                }
+                // Lấy thông tin đơn hàng trực tiếp (bao gồm paymentMethod nếu có)
+                Order order = dao.getOrderById(orderID);
                 
-                // Lấy thông tin sản phẩm cho mỗi chi tiết
+                // Với mỗi chi tiết đơn hàng, cố gắng ánh xạ về product và variant tương ứng
                 List<Product> listProducts = new ArrayList<>();
+                List<ProductVariant> listVariants = new ArrayList<>();
                 for (OrderDetail od : listOD) {
                     Product p = dao.getProductByID(od.getProductID());
+                    ProductVariant pv = null;
+                    if (p == null) {
+                        // Trường hợp schema lưu variant_id ở cột productID của orderdetails (legacy)
+                        pv = dao.getVariantById(od.getProductID());
+                        if (pv != null) {
+                            String cName = dao.getColorNameById(pv.getColorId());
+                            String sName = dao.getSizeNameById(pv.getSizeId());
+                            try { pv.setColorName(cName); } catch (Exception ignore) {}
+                            try { pv.setSizeName(sName); } catch (Exception ignore) {}
+                            p = dao.getProductByID(pv.getProductId());
+                        }
+                    } else {
+                        // Nếu lấy được product theo id, thử suy ra variant theo tồn tại trong orderdetails nếu có cột variant_id
+                        // Không có thông tin color/size trong OrderDetail, để trống pv
+                    }
                     if (p != null) {
                         listProducts.add(p);
+                        listVariants.add(pv); // có thể null, JSP sẽ xử lí gracefully
                     }
                 }
                 
                 request.setAttribute("listOD", listOD);
                 request.setAttribute("listProducts", listProducts);
+                request.setAttribute("listVariants", listVariants);
                 request.setAttribute("orderID", orderID);
                 request.setAttribute("order", order);
                 request.getRequestDispatcher("OrderDetail.jsp").forward(request, response);

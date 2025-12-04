@@ -1,7 +1,7 @@
 package control;
 
-import dao.DAO;
 import entity.Account;
+import service.AdminService;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -33,16 +33,16 @@ public class AdminDashboardControl extends HttpServlet {
             page = "dashboard";
         }
         
-        DAO dao = new DAO();
+        AdminService adminService = new AdminService();
         String contentPage = "";
         
         switch (page) {
             case "dashboard":
                 // Load dashboard statistics
-                int newOrdersCount = dao.getNewOrdersCount();
-                double monthlyRevenue = dao.getMonthlyRevenue();
-                int totalProducts = dao.getTotalProductsCount();
-                int totalCustomers = dao.getTotalCustomersCount();
+                int newOrdersCount = adminService.getNewOrdersCount();
+                double monthlyRevenue = adminService.getMonthlyRevenue();
+                int totalProducts = adminService.getTotalProductsCount();
+                int totalCustomers = adminService.getTotalCustomersCount();
                 
                 request.setAttribute("newOrdersCount", newOrdersCount);
                 request.setAttribute("monthlyRevenue", monthlyRevenue);
